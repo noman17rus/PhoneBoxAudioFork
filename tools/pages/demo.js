@@ -19,7 +19,7 @@
     ['snip', 'Snip', '✂️', '#14b8a6'], ['taskmgr', 'Task Manager', '📊', '#22c55e'], ['mute', 'Mute', '🔇', '#f59e0b'],
     ['screenoff', 'Screen Off', '🌙', '#8b5cf6'], ['lock', 'Lock', '🔒', '#ef4444'], ['settings', 'Settings', '⚙️', '#94a3b8'],
   ].map(([id, label, icon, color]) => ({ id, label, icon, color, cmd: id === 'mute' ? 'builtin:mute' : 'demo', args: null, toggle: false }));
-  const PAGES = ['home', 'dashboard', 'ai', 'work', 'system', 'procs', 'deck', 'music', 'status', 'ambient', 'world', 'daily', 'markets', 'feeds', 'focus', 'calm', 'clock', 'automation', 'planner', 'nightstand', 'weekend', 'focuswork',
+  const PAGES = ['audio-loudness', 'audio-analysis', 'audio-waveform', 'audio-stereo', 'home', 'dashboard', 'ai', 'work', 'system', 'procs', 'deck', 'music', 'status', 'ambient', 'world', 'daily', 'markets', 'feeds', 'focus', 'calm', 'clock', 'automation', 'planner', 'nightstand', 'weekend', 'focuswork',
     'codexbar', 'devops', 'audio-deck', 'stream-deck', 'meeting-deck', 'development-deck', 'music-deck', 'system-deck'];
 
   let catalog = null;
@@ -605,6 +605,94 @@
       return new Response(svg, { status: 200, headers: { 'Content-Type': 'image/svg+xml' } });
     }
     // spectrum bars: like the agent, frames only for a widget on an enabled page; a made-up beat with a bass kick here
+    if (path === '/api/audio-spectrum') {
+      const cfg = await config();
+      const requested = q.get('widget') || '';
+      let widget = null;
+      for (const page of cfg.pages || []) {
+        if (page.enabled === false) continue;
+        for (const w of page.widgets || []) {
+          if (`${page.id}/${w.id}` === requested && w.type === 'audio-spectrum') widget = w;
+          if (w.type === 'stack') for (const [i, child] of (w.options?.widgets || []).entries()) {
+            if (child.enabled !== false && child.active !== false && child.type === 'audio-spectrum'
+              && `${page.id}/${w.id}:${child.id || `card-${i}`}` === requested) widget = child;
+          }
+        }
+      }
+      if (!widget) return json({ shown: false, key: '', frame: null });
+      const o = widget.options || {}, fftSize = [4096, 8192, 16384].includes(+o.fft) ? +o.fft : 8192;
+      const averageMs = [0, 100, 300, 1000].includes(+o.average) ? +o.average : 300;
+      const key = `${fftSize}:${averageMs}:${o.device || ''}`;
+      const frequencies = Array.from({ length: 512 }, (_, i) => 20 * Math.pow(1000, i / 511));
+      const t = Date.now() / 1000;
+      const curves = Array.from({ length: 5 }, (_, channel) => frequencies.map((f, i) =>
+        Math.round(10 * (-54 - 9 * Math.log2(f / 1000) / 3 + 7 * Math.sin(i * .035 + t + channel * .5)
+          + 16 * Math.exp(-Math.pow(Math.log2(f / 1000) * 5, 2)) + 3 * Math.sin(t * 4 + i * .1))) / 10));
+      return json({ shown: true, key, frame: { key, sequence: Date.now(), timestamp: Date.now(), state: 'live',
+        device: o.device || 'demo-output', deviceName: 'DEMO — synthetic audio', sampleRate: 48000, channels: 2,
+        fftSize, averageMs, resolutionHz: 48000 / fftSize, frequencies, curves } });
+    }
+    if (path === '/api/audio-loudness' || path === '/api/audio-loudness/reset') {
+      const widget = panelWidget(await config(), q.get('widget'), 'audio-loudness');
+      if (!widget) return json({ shown: false, key: '', frame: null });
+      const key = `loud::${q.get('widget')}:${widget.options?.device || ''}`;
+      const store = window.__demoLoudness || (window.__demoLoudness = new Map());
+      if (!store.has(key) || path.endsWith('/reset')) store.set(key, Date.now());
+      const seconds = (Date.now() - store.get(key)) / 1000;
+      const frame = { key, timestamp: Date.now(), sequence: Date.now(), state: 'live',
+        device: 'demo-output', deviceName: 'DEMO — synthetic audio', sampleRate: 48000, channels: 2,
+        values: path.endsWith('/reset') ? null : { samplePeak: [-12, -15], rms: [-15.01, -18.01], truePeak: [-11.9, -14.9],
+          maxSamplePeak: [-10, -13], maxRms: [-13.01, -16.01], maxTruePeak: [-9.9, -12.9],
+          momentary: seconds >= .4 ? -23 : null, shortTerm: seconds >= 3 ? -23 : null,
+          integrated: seconds >= .4 ? -23 : null, maxMomentary: seconds >= .4 ? -23 : null,
+          maxShortTerm: seconds >= 3 ? -23 : null, seconds } };
+      return json({ shown: true, key, frame });
+    }
+    if (path === '/api/audio-stereo') {
+      const widget = panelWidget(await config(), q.get('widget'), 'audio-stereo');
+      if (!widget) return json({ shown: false, key: '', frame: null });
+      const key = `stereo:${widget.options?.device || ''}`, t = Date.now() / 1000;
+      const phase = .8 + .7 * Math.sin(t * .5);
+      let left = 0, right = 0, cross = 0, mid = 0, side = 0;
+      const points = Array.from({ length: 512 }, (_, i) => {
+        const l = .7 * Math.sin(i * Math.PI * 2 / 64), r = .55 * Math.sin(i * Math.PI * 2 / 64 + phase);
+        left += l * l; right += r * r; cross += l * r;
+        const m = (l + r) / 2, s = (l - r) / 2; mid += m * m; side += s * s;
+        return [s, m];
+      });
+      return json({ shown: true, key, frame: { key, timestamp: Date.now(), sequence: Date.now(), state: 'live',
+        device: widget.options?.device || 'demo-output', deviceName: 'DEMO — synthetic audio', sampleRate: 48000, channels: 2,
+        windowMs: 100, points, correlation: cross / Math.sqrt(left * right),
+        leftDb: 10 * Math.log10(left / 512), rightDb: 10 * Math.log10(right / 512),
+        leftShare: left / (left + right), midShare: mid / (mid + side) } });
+    }
+    if (path === '/api/audio-waveform') {
+      const cfg = await config();
+      const requested = q.get('widget') || '';
+      let widget = null;
+      for (const page of cfg.pages || []) {
+        if (page.enabled === false) continue;
+        for (const w of page.widgets || []) {
+          if (`${page.id}/${w.id}` === requested && w.type === 'audio-waveform') widget = w;
+          if (w.type === 'stack') for (const [i, child] of (w.options?.widgets || []).entries()) {
+            if (child.enabled !== false && child.active !== false && child.type === 'audio-waveform'
+              && `${page.id}/${w.id}:${child.id || `card-${i}`}` === requested) widget = child;
+          }
+        }
+      }
+      if (!widget) return json({ shown: false, key: '', frame: null });
+      const o = widget.options || {};
+      const requestedInterval = +(q.get('interval') ?? o.interval ?? 1000);
+      const intervalMs = [10, 50, 100, 500, 1000, 5000, 10000].includes(requestedInterval) ? requestedInterval : 1000;
+      const key = `wave:${intervalMs}:${o.device || ''}`, t = Date.now() / 1000;
+      const min = Array.from({length: 4}, (_, c) => Array.from({length: 512}, (_, i) =>
+        -.7 * Math.abs(Math.sin(i * .065 + t + c * .7))));
+      const max = min.map((curve, c) => curve.map((v, i) => -v * (.8 + .15 * Math.cos(i + c))));
+      max[0][385] = 1; min[1][120] = -1.05;
+      return json({ shown: true, key, frame: { key, sequence: Date.now(), timestamp: Date.now(), state: 'live',
+        device: o.device || 'demo-output', deviceName: 'DEMO — synthetic audio', sampleRate: 48000, channels: 2,
+        intervalMs, min, max } });
+    }
     if (path === '/api/spectrum') {
       const shown = shownWidgets(await config()).some((w) => w.type === 'spectrum');
       const s = Date.now() / 1000, kick = Math.max(0, Math.cos(s * Math.PI * 2 * 2)) ** 6;

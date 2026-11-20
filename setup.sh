@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # PhoneBox setup for Linux and macOS: installs the latest release, everything it needs, and the phone app.
 #
-#   curl -fsSL https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.sh | bash -s -- --no-phone
+#   curl -fsSL https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.sh | bash -s -- --no-phone
 #
 # Run it as yourself, not with sudo: it asks for sudo only to install packages, and asks first.
 # Running it again updates PhoneBox or repairs the installation; settings are kept.
@@ -18,7 +18,7 @@
 #   --dry-run           download and check everything, show what would happen, change nothing
 set -euo pipefail
 
-repo="ersinkoc/phonebox"
+repo="noman17rus/PhoneBoxAudioFork"
 package="net.oxog.phonebox.deskpanel"
 settings_url="http://127.0.0.1:8765"
 

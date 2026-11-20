@@ -1,6 +1,10 @@
 <p align="center"><img src="agent/PhoneBox.Agent/phonebox.ico" width="72" alt="PhoneBox icon"></p>
 
-<h1 align="center">PhoneBox</h1>
+<h1 align="center">PhoneBoxAudioFork</h1>
+
+Public fork of [PhoneBox](https://github.com/ersinkoc/phonebox) by **Ersin KOÇ**, distributed under the original [MIT license](LICENSE). Fork maintained by [noman17rus](https://github.com/noman17rus).
+
+**Fork releases: Windows x64 + Android.** Includes audio spectrum, waveform, stereo and loudness analysis, plus the YouTube widget and Chrome extension. Download all packages from [Releases](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest). Future fork updates are distributed through this repository.
 
 <p align="center">
   <b>English</b> ·
@@ -20,17 +24,17 @@
 
 <p align="center"><b>Turn an old Android phone into a desk panel for your computer.</b><br>
 PC stats, AI coding sessions, music and touch controls over USB or Wi-Fi.<br>
-Windows, Linux and macOS. No root, PhoneBox account or cloud service required.</p>
+Fork packages: Windows and Android. No root, PhoneBox account or cloud service required.</p>
 
 <p align="center">
-  <a href="https://ersinkoc.github.io/phonebox/"><b>Try the live demo</b></a> ·
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><b>Download</b></a> ·
+  <a href="https://ersinkoc.github.io/phonebox/"><b>Original project demo</b></a> ·
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><b>Download</b></a> ·
   <a href="#quick-start"><b>Quick start</b></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml"><img src="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Latest release"></a>
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/actions/workflows/build.yml"><img src="https://github.com/noman17rus/PhoneBoxAudioFork/actions/workflows/build.yml/badge.svg" alt="Build status"></a>
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><img src="https://img.shields.io/github/v/release/noman17rus/PhoneBoxAudioFork?label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-.NET%2010-512bd4" alt="Windows, Linux, macOS; .NET 10">
   <img src="https://img.shields.io/badge/Android-5%2B-3ddc84" alt="Android 5+">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
@@ -40,13 +44,14 @@ Windows, Linux and macOS. No root, PhoneBox account or cloud service required.</
 <sub>Example layouts with demo data.</sub></p>
 
 PhoneBox pairs a full-screen **Android app** with a small **desktop agent**. Build your panel in a browser-based
-visual editor: **124 widgets**, **30 templates**, multiple pages and a live preview. Connect several phones with
+visual editor: **129 widgets**, **34 templates**, multiple pages and a live preview. Connect several phones with
 their own layouts, or switch one phone between paired computers.
 
 ## What you can do
 
 | Use it for | What appears on the phone |
 |---|---|
+| **Audio analysis** | [Spectrum](docs/AUDIO-SPECTRUM.md), [waveform](docs/AUDIO-WAVEFORM.md) [stereo field](docs/AUDIO-STEREO.md) and [loudness](docs/AUDIO-LOUDNESS.md): peak/RMS/True Peak per L/R, LUFS M/S/I, session maxima and reset |
 | **PC monitoring** | CPU, GPU, RAM, disks, network and ping; charts, GPU details and process controls |
 | **AI coding** | Claude, Codex and Antigravity quotas, reset times and burn-rate forecasts; local Claude Code and Codex sessions; GitHub reviews and CI status |
 | **Touch controls** | App and URL shortcuts, key combinations and macros; application audio, microphone, media, OBS and system controls through [Control Deck](docs/CONTROL-DECK.md) |
@@ -60,6 +65,12 @@ and a cost overview.
 <p align="center"><a href="docs/tour-0.6.mp4"><img src="docs/tour-0.6.gif" width="780" alt="PhoneBox tour showing notifications, a Claude Code permission prompt and automatic page switching"></a><br>
 <sub>A tour with demo data: notifications, permission prompts and automatic page switching. <a href="docs/tour-0.6.mp4">Watch the MP4</a></sub></p>
 
+## Audio spectrum fork
+
+This fork also adds a **YouTube video widget**: start capture once with the bundled Chrome extension, then leaving the selected YouTube tab shows its video on the phone while sound stays on the PC. Includes Previous / Play–Pause / Next and supports USB or paired Wi-Fi. See [setup and limitations](docs/YOUTUBE.md).
+
+This fork adds Windows output spectrum, waveform, stereo field and loudness analyzers. Add **Audio Analysis**, **Audio Waveform**, **Stereo Field** or **Loudness** in the layout editor. The waveform has separate L/R or M/S lanes, 10 ms–10 s windows, freeze and 0 dBFS markers with peak-preserving envelopes. Loudness uses BS.1770 K-weighting and EBU R128 gating, validated against the stereo EBU Tech 3341 reference signals; see [the loudness guide](docs/AUDIO-LOUDNESS.md). See [the spectrum guide](docs/AUDIO-SPECTRUM.md) and [waveform guide](docs/AUDIO-WAVEFORM.md).
+
 ## Quick start
 
 You need an **Android 5+ phone** (Android 6 or later recommended) and a supported computer. USB uses a data cable and USB debugging; Wi-Fi pairing
@@ -70,10 +81,10 @@ works without either. Release agents include .NET, so you do not need to install
 **Windows 10/11 x64** — paste into a normal PowerShell window:
 
 ```powershell
-irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1 | iex
 ```
 
-**Linux or macOS** — run as your own user:
+**Linux or macOS (upstream only; no fork binaries)** — use the original project:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.sh | bash
@@ -83,7 +94,7 @@ Setup downloads the latest release, checks its SHA-256 checksum, offers missing 
 and opens the settings at <http://127.0.0.1:8765>. It can also install the Android app over USB.
 Run setup again to update or repair the installation while keeping settings and pairings.
 
-> **Windows signing:** release agents are currently unsigned while the SignPath Foundation application is pending.
+> **Windows signing:** fork release agents are unsigned. The upstream SignPath signing policy does not apply to this fork.
 > SmartScreen or antivirus software may warn or block them. See the [code signing policy](#code-signing-policy)
 > and [installation warnings](docs/SETUP.md#quick-start). USB debugging should be authorized only on computers you trust.
 
@@ -94,7 +105,7 @@ The [installation guide](docs/SETUP.md) covers options, dependencies, install pa
 
 | USB | Wi-Fi only |
 |---|---|
-| Enable **Developer options → USB debugging**, connect a data cable and accept the phone's authorization prompt. Let setup install the app, or use **Settings → General → Install the phone app**. | Install the APK from the [latest release](https://github.com/ersinkoc/phonebox/releases/latest). Wi-Fi is off by default: open the settings page (tray icon, or `http://127.0.0.1:8765`), turn on **General → Wi-Fi & Tailscale → Let the phone connect without the USB cable**, click **Save**, then **Restart to apply** at the top. Choose **Pair a phone over Wi-Fi**, scan the pairing QR code and confirm the matching check code. |
+| Enable **Developer options → USB debugging**, connect a data cable and accept the phone's authorization prompt. Let setup install the app, or use **Settings → General → Install the phone app**. | Install the APK from the [latest release](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest). Wi-Fi is off by default: open the settings page (tray icon, or `http://127.0.0.1:8765`), turn on **General → Wi-Fi & Tailscale → Let the phone connect without the USB cable**, click **Save**, then **Restart to apply** at the top. Choose **Pair a phone over Wi-Fi**, scan the pairing QR code and confirm the matching check code. |
 | Wakes and opens the panel on connection; supports app updates over adb. | No adb or developer options needed; install app updates manually unless you later configure USB. |
 
 The phone app is not in any app store; it comes only from this repository's releases. It runs on Android 5.0 and
@@ -112,9 +123,9 @@ Swipe, tap the page dots or use the phone's volume keys to move between pages.
 <details>
 <summary><b>Other installation methods</b></summary>
 
-- **Manual download:** unzip the agent for your system from the [release page](https://github.com/ersinkoc/phonebox/releases/latest)
-  and run it. Install the APK on the phone. Checksums and build provenance accompany the release assets.
-- **Scoop (Windows):**
+- **Manual download:** unzip the agent for your system from the [release page](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest)
+  and run it. Install the APK on the phone. SHA-256 checksums accompany the release assets.
+- **Scoop (original project, does not install this fork):**
 
   ```powershell
   scoop bucket add phonebox https://github.com/ersinkoc/phonebox
@@ -122,7 +133,7 @@ Swipe, tap the page dots or use the phone's volume keys to move between pages.
   ```
 
 - **From source:** see the [installation guide](docs/SETUP.md#other-ways-to-install) and [development guide](docs/DEVELOPMENT.md).
-- **winget:** manifests are prepared in [packaging/winget](packaging/winget); see the installation guide for details.
+- **winget (original project only):** manifests are prepared in [packaging/winget](packaging/winget); see the installation guide for details.
 
 </details>
 
@@ -200,17 +211,9 @@ Contributions are welcome; start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Code signing policy
 
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by
-[SignPath Foundation](https://signpath.org/).
+Windows fork binaries are unsigned. Android releases use a permanent, private fork signing key stored in GitHub Actions secrets; the key and passwords are never committed. If an existing APK has a different signature, Android requires a manual reinstall before using this fork. Back up settings first; uninstalling can remove phone-local pairings. Later fork releases use the same key and support in-place updates. The installer never removes an installed app automatically.
 
-- **Windows agent:** the SignPath Foundation application is pending; releases are unsigned until approved.
-  The intended signing target is `PhoneBoxAgent.exe` in the `win-x64` release zip, built by the
-  [release workflow](.github/workflows/release.yml). Every signing request requires manual approval.
-  Bundled runtime and library notices are in [THIRD-PARTY-NOTICES.txt](agent/PhoneBox.Agent/THIRD-PARTY-NOTICES.txt).
-- **Android app:** release APKs use the project's own signing key, independently of SignPath.
-- **Team roles:** committer, reviewer and signing approver: [ersinkoc](https://github.com/ersinkoc).
-  Pull requests from other contributors are reviewed before merging.
-- **Privacy:** see the [privacy policy](PRIVACY.md).
+See [release instructions](docs/RELEASING.md) for the release process and signing backup requirements.
 
 ## Thanks
 

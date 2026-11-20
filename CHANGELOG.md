@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.22 — 2026-11-20
+
+First PhoneBoxAudioFork release, based on [PhoneBox by Ersin KOÇ](https://github.com/ersinkoc/phonebox).
+
+- Windows audio spectrum, waveform, stereo field and loudness widgets.
+- YouTube video widget with the bundled Chrome extension; PC audio stays on the PC.
+- Panel animation and swipe improvements.
+- Windows and Android releases and updates now come from noman17rus/PhoneBoxAudioFork.
+- Android uses a permanent fork signing key. APKs signed with another key require a manual reinstall; subsequent fork releases update in place. The installer never uninstalls automatically.
+- Windows ZIP, signed Android APK, complete YouTube bundle, separate extension ZIP and SHA-256 checksums.
+
 ## Unreleased
 
 **Languages**

@@ -5,11 +5,11 @@
 .DESCRIPTION
   Run it from a normal PowerShell window (not "Run as administrator"):
 
-    irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1 | iex
+    irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1 | iex
 
   With options:
 
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1))) -NoPhone
+    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1))) -NoPhone
 
   What it does, asking first before anything outside the PhoneBox folders:
     1. Checks this PC (Windows 10/11, x64) and finds the latest PhoneBox release.
@@ -48,7 +48,7 @@ param(
     [switch]$AllowAdministrator
 )
 
-$Repo = 'ersinkoc/phonebox'
+$Repo = 'noman17rus/PhoneBoxAudioFork'
 $Package = 'net.oxog.phonebox.deskpanel'
 $SettingsUrl = 'http://127.0.0.1:8765'
 

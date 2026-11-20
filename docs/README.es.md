@@ -24,13 +24,13 @@ Windows, Linux y macOS. Sin root, sin cuenta de PhoneBox ni servicio en la nube.
 
 <p align="center">
   <a href="https://ersinkoc.github.io/phonebox/"><b>Probar demo en vivo</b></a> ·
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><b>Descargar</b></a> ·
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><b>Descargar</b></a> ·
   <a href="#inicio-rápido"><b>Inicio rápido</b></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml"><img src="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml/badge.svg" alt="Estado de compilación"></a>
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Última versión"></a>
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Última versión"></a>
   <img src="https://img.shields.io/badge/Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-.NET%2010-512bd4" alt="Windows, Linux, macOS; .NET 10">
   <img src="https://img.shields.io/badge/Android-5%2B-3ddc84" alt="Android 5+">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="Licencia MIT"></a>
@@ -58,7 +58,7 @@ PhoneBox combina una **aplicación Android** a pantalla completa con un ligero *
 **Windows 10/11 x64** (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1 | iex
 ```
 
 **Linux o macOS**:
@@ -73,7 +73,7 @@ La configuración se abre en <http://127.0.0.1:8765>. Consulta la [guía de inst
 
 | USB | Solo Wi-Fi |
 |---|---|
-| Activa **Opciones de desarrollador → Depuración USB** y conecta el cable. | Instala el APK de la [última versión](https://github.com/ersinkoc/phonebox/releases/latest), activa **Wi-Fi & Tailscale** y escanea el código QR. |
+| Activa **Opciones de desarrollador → Depuración USB** y conecta el cable. | Instala el APK de la [última versión](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest), activa **Wi-Fi & Tailscale** y escanea el código QR. |
 
 ### 3. Personalizar
 

@@ -94,6 +94,7 @@ test('keys flip pages and the overview jumps to a page', async ({ page }) => {
   // the demo's settings are loaded (until then the built-in defaults may show the night screen after 00:30)
   await expect.poll(() => page.locator('#dots i').count()).toBeGreaterThan(10);
   await expect(page.locator('body')).not.toHaveClass(/night/);
+  await page.evaluate(async () => (await import('/panel/main.js')).goPage(0, true));
   expect(await activeDot(page)).toBe(0);
   await page.keyboard.press('ArrowRight');
   await expect.poll(() => activeDot(page)).toBe(1);
@@ -263,6 +264,8 @@ test('rules firing one after another do not bounce the screen', async ({ page })
   test.setTimeout(45_000);
   await page.goto('/panel/');
   await expect(page.locator('.w').first()).toBeVisible();
+  await expect.poll(() => page.locator('#dots i').count()).toBeGreaterThan(10);
+  await page.evaluate(async () => (await import('/panel/main.js')).goPage(0, true));
   // a rule that ends before its turn is dropped
   await page.evaluate(() => {
     window.PhoneBoxDemo.emit('goto', { page: 2, rule: 'flappy', hold: true, countdown: 2 });
@@ -511,6 +514,7 @@ test('clicking a RAM widget navigates to the Processes page sorted by RAM', asyn
   await expect(page.locator('.w').first()).toBeVisible();
   await expect.poll(() => page.locator('#dots i').count()).toBeGreaterThan(10);
   const ramLabel = page.locator('.w .t-label', { hasText: /^RAM/ }).first();
+  await ramLabel.scrollIntoViewIfNeeded(); // Offscreen widgets paint their latest telemetry when their page becomes active.
   await expect(ramLabel).toBeVisible();
   await expect(ramLabel).toContainText('%');
   await ramLabel.locator('..').click();

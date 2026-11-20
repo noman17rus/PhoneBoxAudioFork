@@ -309,10 +309,11 @@ body.night #navCard, body.night #navChip { display: none; }
 .bar { position: relative; height: 18px; display: flex; align-items: center; touch-action: none; cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
 .bar::before { content: ""; position: absolute; left: 0; right: 0; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .12); }
 .bar::after { content: ""; position: absolute; left: -6px; right: -6px; top: -12px; bottom: -12px; } /* a finger-sized target around the thin bar */
-.fill { position: relative; height: 4px; border-radius: 2px; background: var(--text); width: 0; }
-.fill::after { content: ""; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--text); transition: transform .12s; }
-.bar.scrubbing .fill::after { transform: scale(1.8); box-shadow: 0 0 0 4px rgba(255, 255, 255, .18); }
-.bar:focus-visible .fill::after { transform: scale(1.8); box-shadow: 0 0 0 4px rgba(255, 255, 255, .18); } /* its own rule: Chromium < 86 drops a rule it cannot parse */
+.fill { position: absolute; left: 0; height: 4px; border-radius: 2px; background: var(--text); width: 100%; transform: scaleX(0); transform-origin: left; }
+.playhead { position: absolute; left: 0; width: 100%; height: 4px; transform: translateX(-100%); pointer-events: none; }
+.playhead::after { content: ""; position: absolute; right: -5px; top: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--text); transition: transform .12s; }
+.bar.scrubbing .playhead::after { transform: scale(1.8); box-shadow: 0 0 0 4px rgba(255, 255, 255, .18); }
+.bar:focus-visible .playhead::after { transform: scale(1.8); box-shadow: 0 0 0 4px rgba(255, 255, 255, .18); } /* its own rule: Chromium < 86 drops a rule it cannot parse */
 /* the bubble with the time the song will continue from, over the thumb while the bar is held or focused */
 .scrub-tip {
   position: absolute; bottom: 100%; left: clamp(24px, var(--tip, 0%), calc(100% - 24px)); transform: translate(-50%, -8px);
@@ -1271,6 +1272,23 @@ body.controls-top .ap-foot { order: -1; margin-bottom: 4px; }
 
 
 /* Note editor (tap a Note widget on the phone) */
+.w-audio-spectrum, .w-audio-waveform, .w-audio-stereo, .w-audio-loudness { display: flex; flex-direction: column; gap: 6px; padding: 10px; background: #0c1723; color: #dce8f3; }
+.as-header { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.as-status { color: #8fa9bc; font-size: 11px; text-align: right; }
+.as-controls { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 11px; }
+.as-controls button, .as-controls select { background: #172a3a; color: #dce8f3; border: 1px solid #324658; border-radius: 5px; font: inherit; padding: 5px 7px; min-height: 28px; }
+.as-controls button[aria-pressed=true] { border-color: #42dcca; color: #42dcca; }
+.as-tilt { display: flex; align-items: center; gap: 4px; }
+.as-tilt input { width: 80px; accent-color: #42dcca; }
+.as-tilt-value { min-width: 68px; font-variant-numeric: tabular-nums; }
+.as-plot { flex: 1; min-height: 0; position: relative; }
+/* Audio plots are display surfaces: let the pager handle swipes from any point. */
+.as-plot canvas { width: 100%; height: 100%; position: absolute; inset: 0; pointer-events: none; }
+.as-message { position: absolute; inset: 0; display: grid; place-items: center; color: #a3b5c5; font-size: 12px; text-align: center; pointer-events: none; padding: 24px; }
+.as-message[hidden] { display: none; }
+.as-info { font-size: 10px; color: #8fa9bc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-audio-spectrum.as-expanded, .w-audio-waveform.as-expanded, .w-audio-stereo.as-expanded, .w-audio-loudness.as-expanded { position: fixed !important; inset: 0 !important; width: auto !important; height: auto !important; z-index: 9000; margin: 0; border-radius: 0; }
+
 .note-edit { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .note-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; width: min(92vw, 560px); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
 .note-ta { width: 100%; box-sizing: border-box; font: inherit; font-size: 16px; line-height: 1.4; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; }
@@ -1278,3 +1296,43 @@ body.controls-top .ap-foot { order: -1; margin-bottom: 4px; }
 
 /* text for screen readers only (an icon-only element keeps its meaning) */
 .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.st-meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 11px; }
+.st-meter { min-width: 0; }
+.st-meter label, .st-meter output { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-meter input { width: 100%; margin: 2px 0; accent-color: #42dcca; pointer-events: none; }
+.st-scale { display: flex; justify-content: space-between; color: #8fa9bc; font-size: 10px; }
+
+.lm-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; justify-content: space-evenly; gap: 10px; }
+.lm-levels { width: 100%; border-collapse: collapse; font-size: clamp(10px, 2vw, 14px); font-variant-numeric: tabular-nums; }
+.lm-levels th, .lm-levels td { padding: 5px 3px; text-align: right; border-bottom: 1px solid #263c4c; }
+.lm-levels th:first-child { text-align: left; color: #9bb3c5; font-weight: 400; }
+.lm-levels td:nth-child(n+4) { color: #fbaf64; }
+.lm-lufs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.lm-card { min-width: 0; padding: 8px 4px; background: #142535; border-radius: 6px; text-align: center; font-variant-numeric: tabular-nums; }
+.lm-card label, .lm-card span, .lm-card small { display: block; color: #9bb3c5; font-size: 10px; }
+.lm-card output { display: block; color: #42dcca; font-size: clamp(20px, 4vw, 38px); line-height: 1.2; }
+.lm-card small { color: #fbaf64; margin-top: 4px; }
+.lm-elapsed { color: #9bb3c5; margin-left: auto; font-variant-numeric: tabular-nums; }
+.lm-over { color: #ff6b68; font-weight: 700; }
+
+/* Moving bars use composited transforms rather than changing layout every frame. */
+.track i.scaled-fill, .p-bar i.scaled-fill { width: 100%; transform-origin: left; transition-property: transform; }
+.page:not(.motion-active) *, .stack-item:not(.active) *,
+body.motion-paused #pager *, body.night #pager * {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+body:not(.motion-paused):not(.night) .motion-active .w-media.playing .fill,
+body:not(.motion-paused):not(.night) .motion-active .w-media.playing .playhead { will-change: transform; }
+/* YouTube is video-only; playback and sound remain in the selected PC tab. */
+.youtube-widget { display:flex; flex-direction:column; gap:6px; min-height:0; }
+.youtube-stage { flex:1; min-height:0; position:relative; background:#080a0d; border-radius:8px; overflow:hidden; }
+.youtube-image { width:100%; height:100%; object-fit:contain; display:block; }
+.youtube-image[hidden], .youtube-note[hidden] { display:none; }
+.youtube-note { position:absolute; inset:0; padding:12px; text-align:center; }
+.youtube-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.85em; }
+.youtube-controls { display:flex; justify-content:center; gap:12px; }
+.youtube-button { color:inherit; background:var(--surface, #252932); border:0; border-radius:8px; min-width:44px; min-height:36px; font:inherit; cursor:pointer; }
+.youtube-button:disabled { opacity:0.35; cursor:default; }

@@ -50,16 +50,59 @@ export const lines = (v, d) => (Array.isArray(v) ? v : typeof v === 'string' ? v
 export function dialEl() {
   const dial = h('div', 'g-dial'), val = h('div', 'g-val');
   dial.append(val);
-  let svg = null;
   dial.set = (pct, text, unit, elapsed) => {
-    if (svg) svg.remove();
-    dial.insertAdjacentHTML('afterbegin', ringSvg(pct, elapsed)); // numbers only
-    svg = dial.firstElementChild;
-    val.replaceChildren(String(text), unit ? h('small', null, unit) : '');
+    updateRing(dial, pct, elapsed);
+    if (val.textContent !== String(text) + (unit || '')) val.replaceChildren(String(text), unit ? h('small', null, unit) : '');
   };
   return dial;
 }
 
+/** Retain the foreground circle so CSS can animate from its displayed value. */
+export function updateRing(dial, pct, elapsed) {
+  let svg = dial.querySelector('svg');
+  if (!svg) {
+    dial.insertAdjacentHTML('afterbegin', ringSvg(pct, elapsed)); // numbers only
+    return;
+  }
+  const offset = (2 * Math.PI * 42 * (1 - Math.max(0, Math.min(100, pct)) / 100)).toFixed(1);
+  const foreground = svg.querySelector('.fg');
+  if (foreground.getAttribute('stroke-dashoffset') !== offset) foreground.setAttribute('stroke-dashoffset', offset);
+  let pace = svg.querySelector('.pace');
+  if (elapsed == null) { pace?.remove(); return; }
+  if (!pace) { pace = document.createElementNS('http://www.w3.org/2000/svg', 'line'); pace.classList.add('pace'); svg.append(pace); }
+  const angle = elapsed * 2 * Math.PI;
+  for (const [key, value] of Object.entries({ x1: 50 + Math.cos(angle) * 35, y1: 50 + Math.sin(angle) * 35,
+    x2: 50 + Math.cos(angle) * 49, y2: 50 + Math.sin(angle) * 49 })) pace.setAttribute(key, value.toFixed(1));
+}
+
 export function canKillAnywhere() {
   return (cfg.pages || []).some((p) => p.enabled !== false && (p.widgets || []).some((w) => w.type === 'processes' && w.options?.allowKill !== false));
+}
+
+// Keep meter nodes mounted so new telemetry retargets an existing transition.
+export function syncMeters(root, values) {
+  const existing = new Map([...root.children].filter(el => el.dataset.meter !== undefined).map(el => [el.dataset.meter, el]));
+  values.forEach((v, index) => {
+    const key = `${index}:${v.name}`;
+    let el = existing.get(key);
+    if (el) existing.delete(key);
+    else {
+      el = h('div', 'meter', h('div', 'm-row', h('span'), h('span')), h('div', 'track', h('i')));
+      el.dataset.meter = key;
+    }
+    const row = el.firstChild;
+    if (row.firstChild.textContent !== v.name) row.firstChild.textContent = v.name;
+    if (row.lastChild.textContent !== v.txt) row.lastChild.textContent = v.txt;
+    if (v.c) el.style.setProperty('--c', v.c); else el.style.removeProperty('--c');
+    progressFill(el.querySelector('i'), v.pct / 100);
+    if (root.children[index] !== el) root.insertBefore(el, root.children[index] || null);
+  });
+  for (const el of existing.values()) el.remove();
+}
+
+export function progressFill(el, value) {
+  const scale = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+  el.classList.add('scaled-fill');
+  const transform = `scaleX(${scale})`;
+  if (el.style.transform !== transform) el.style.transform = transform;
 }

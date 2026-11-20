@@ -158,8 +158,8 @@ test('the bar tells assistive technology the range and the current time, also du
   expect(now).toBeLessThanOrEqual(91);
   await expect(bar(page)).toHaveAttribute('aria-valuetext', /1:3\d/);
 
-  await page.waitForTimeout(1300); // playback moves on; the panel's own refresh is paused in these tests, so ask for it
-  await page.evaluate(async () => (await import('/panel/main.js')).emit('fast'));
+  await page.waitForTimeout(1300); // playback moves on; explicitly paint the latest state while the app is paused
+  await page.evaluate(async () => (await import('/panel/main.js')).emit('state'));
   expect(Number(await bar(page).getAttribute('aria-valuenow'))).toBeGreaterThanOrEqual(now + 1);
 });
 

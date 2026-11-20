@@ -1,4 +1,5 @@
 import { h, haptic, t } from '../main.js';
+import { refreshAnimations } from '../animation.js';
 import { W } from '../registry.js';
 
 function parseWidgets(raw) {
@@ -166,6 +167,7 @@ W.stack = {
       nextChild.el.inert = false;
 
       currentIndex = target;
+      refreshAnimations();
 
       if (dots) {
         dots.querySelectorAll('.stack-dot').forEach((d, idx) => {
@@ -303,9 +305,10 @@ W.stack = {
             lastRotate = Date.now();
           }
         }
-        for (const child of children) {
-          if ((!background || child.always) && child.needs.includes(kind)) {
-            try { child.inst.update?.(kind); } catch (e) { console.warn(child.item.type, e); }
+        for (const [index, child] of children.entries()) {
+          const hidden = background || index !== currentIndex;
+          if ((!hidden || (child.always && kind === 'tick')) && child.needs.includes(kind)) {
+            try { child.inst.update?.(kind, hidden); } catch (e) { console.warn(child.item.type, e); }
           }
         }
       },

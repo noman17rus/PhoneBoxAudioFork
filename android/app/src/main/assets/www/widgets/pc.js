@@ -1,3 +1,4 @@
+import { syncMeters } from './helpers.js';
 import { $, API, D, PANEL_HEADERS, LOCALE, Q_STYLE, api, bridge, cfg, color, cssVar, rulesPaused, toggleRulesPause, fillIcon, fmtDur, fmtHM, fmtMem, gotoPageRef, gpuMem, gpusOf, h, en, haptic, icon, openSheet, paceInfo, pad, pairedPcs, quotaProviders, r1, shortGpu, store, switchPc, t, tick, toast, transport, emo, labelled, rich } from '../main.js';
 import { W } from '../registry.js';
 import { canKillAnywhere, dialEl, every } from './helpers.js';
@@ -854,12 +855,7 @@ W.gpu = {
     const label = h('span', 's-label', 'GPU'), name = h('span', 's-name');
     const big = h('div', 'gd-big'), rows = h('div', 'meters gd-rows'), chips = h('div', 'chips gd-chips');
     box.append(h('div', 's-head', label, name), big, rows, chips);
-    const meter = (title, txt, pct, c) => {
-      const e = h('div', 'meter', h('div', 'm-row', h('span', null, title), h('span', null, txt)), h('div', 'track', h('i')));
-      e.querySelector('i').style.width = Math.max(0, Math.min(100, pct || 0)) + '%';
-      if (c) e.style.setProperty('--c', c);
-      return e;
-    };
+    const meter = (name, txt, pct, c) => ({ name, txt, pct, c });
     const heat = (t, max) => (t >= max - 5 ? '#ef4444' : t >= max - 15 ? '#f59e0b' : '#f97316');
     return {
       update() {
@@ -893,7 +889,7 @@ W.gpu = {
           const max = g.tempMax || (g.hotSpot != null ? 110 : 100);
           list.push(meter('Temperature', `${Math.round(hottest)} / ${Math.round(max)}°C`, (hottest / max) * 100, heat(hottest, max)));
         }
-        rows.replaceChildren(...list);
+        syncMeters(rows, list);
 
         chips.replaceChildren(...[
           g.clock != null ? `Core ${Math.round(g.clock)} MHz` : null,

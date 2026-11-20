@@ -60,6 +60,7 @@ builder.Services.AddSingleton<AudioControl>();
 builder.Services.AddSingleton<AppCatalog>();
 builder.Services.AddSingleton(_ => new ShortcutIconUploads(Path.Combine(configDir, "icons")));
 builder.Services.AddSingleton<PairingCodes>();
+builder.Services.AddSingleton(new YouTubeRelay(Path.Combine(configDir, "youtube-extension.json")));
 builder.Services.AddSingleton<SpotifyControl>();
 builder.Services.AddSingleton<ControlDeck>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<ControlDeck>());
@@ -70,6 +71,7 @@ builder.Services.AddSingleton<HomeAssistant>();
 builder.Services.AddSingleton<AppConsole>();
 builder.Services.AddSingleton<Dictation>();
 builder.Services.AddSingleton<SpectrumAnalyzer>();
+builder.Services.AddSingleton<AudioSpectrum>();
 AddMonitor<SystemMonitor>(builder.Services);
 AddMonitor<MediaMonitor>(builder.Services);
 AddMonitor<QuotaMonitor>(builder.Services);
@@ -220,6 +222,18 @@ app.Use(async (ctx, next) =>
     else
     {
         var host = ctx.Request.Host.Host;
+        if (YouTubeEndpoints.IsExtensionPath(ctx.Request.Path))
+        {
+            if ((host != "127.0.0.1" && host != "localhost") || !YouTubeEndpoints.AllowExtension(ctx.Request, app.Services.GetRequiredService<YouTubeRelay>()))
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+            ctx.Features.Get<Microsoft.AspNetCore.Http.Features.IHttpMaxRequestBodySizeFeature>()!.MaxRequestBodySize = YouTubeRelay.MaxFrameBytes;
+            ctx.Response.Headers.CacheControl = "no-store";
+            await next();
+            return;
+        }
         var spotifyCallback = ctx.Request.Method == "GET" && ctx.Request.Path == "/api/controls/spotify/callback"
             && app.Services.GetRequiredService<SpotifyControl>().HasPendingState(ctx.Request.Query["state"]);
         if ((host != "127.0.0.1" && host != "localhost") || (origin != "" && !SameOrigins.Contains(origin))
@@ -246,6 +260,7 @@ app.Use(async (ctx, next) =>
 });
 
 app.Map("/api/trackpad", TrackpadHandler.HandleEndpoint);
+app.MapYouTube();
 
 // ---------------------------------------------------------------- Wi-Fi pairing (local / USB only)
 // The phone calls this through the USB tunnel and stores everything it needs to connect over Wi-Fi.
@@ -273,7 +288,7 @@ app.MapPost("/api/pair/start", (ConfigStore cfg, PairingCodes codes) =>
     var hosts = Lan.Addresses();
     var fingerprint = Lan.Fingerprint(lanCert);
     var link = PairingCodes.Link(Environment.MachineName, fingerprint, lanCfg.Port, hosts, code);
-    var apk = $"https://github.com/ersinkoc/phonebox/releases/download/v{AppPaths.Version}/PhoneBox-{AppPaths.Version}.apk";
+    var apk = $"https://github.com/noman17rus/PhoneBoxAudioFork/releases/download/v{AppPaths.Version}/PhoneBox-{AppPaths.Version}.apk";
     return Results.Json(new
     {
         enabled = true,
@@ -629,7 +644,7 @@ app.MapGet("/api/state", (long? ev, HttpContext ctx) => Results.Json(State(ctx.R
 // One "state" frame for all open streams: they wake on the same second (below), so the state is built and serialized once
 // per tick, not once per phone. Everything State() reads is a singleton, so the root provider will do.
 var stateFrames = new StateFrameCache(() => State(app.Services, null), new JsonSerializerOptions(JsonSerializerDefaults.Web));
-app.MapGet("/api/stream", async (HttpContext ctx, PushStore push, SessionMonitor sessions, GitHubMonitor gh, SpectrumAnalyzer spectrum, ILogger<Program> log) =>
+app.MapGet("/api/stream", async (HttpContext ctx, PushStore push, SessionMonitor sessions, GitHubMonitor gh, SpectrumAnalyzer spectrum, AudioSpectrum audioSpectrum, ILogger<Program> log) =>
 {
     var ct = ctx.RequestAborted;
     var isPhone = ctx.Request.Headers.ContainsKey("X-PhoneBox-App");
@@ -638,6 +653,10 @@ app.MapGet("/api/stream", async (HttpContext ctx, PushStore push, SessionMonitor
     ctx.Response.ContentType = "text/event-stream";
     ctx.Response.Headers["X-Accel-Buffering"] = "no";
     var opts = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+    var audioSequences = new Dictionary<string, long>();
+    var waveSequences = new Dictionary<string, long>();
+    var stereoSequences = new Dictionary<string, long>();
+    var loudnessSequences = new Dictionary<string, long>();
     async Task Send(string name, object data)
     {
         await ctx.Response.WriteAsync($"event: {name}\ndata: {JsonSerializer.Serialize(data, opts)}\n\n", ct);
@@ -687,6 +706,38 @@ app.MapGet("/api/stream", async (HttpContext ctx, PushStore push, SessionMonitor
             // by the app shell and /api/spectrum by the panel, and nothing ties the two together (over USB both phones
             // are 127.0.0.1). The frames are small (48 numbers) and capture stops ~5 s after the last visible widget.
             var specActive = spectrum.Active;
+            var audioFrames = audioSpectrum.Frames();
+            foreach (var frame in audioFrames)
+            {
+                if (audioSequences.GetValueOrDefault(frame.Key) == frame.Sequence) continue;
+                await Send("audio-spectrum", frame);
+                audioSequences[frame.Key] = frame.Sequence;
+            }
+            foreach (var key in audioSequences.Keys.Where(k => !audioFrames.Any(f => f.Key == k)).ToArray()) audioSequences.Remove(key);
+            var loudnessFrames = audioSpectrum.LoudnessFrames();
+            foreach (var frame in loudnessFrames)
+            {
+                if (loudnessSequences.GetValueOrDefault(frame.Key) == frame.Sequence) continue;
+                await Send("audio-loudness", frame);
+                loudnessSequences[frame.Key] = frame.Sequence;
+            }
+            foreach (var key in loudnessSequences.Keys.Where(k => !loudnessFrames.Any(f => f.Key == k)).ToArray()) loudnessSequences.Remove(key);
+            var stereoFrames = audioSpectrum.StereoFrames();
+            foreach (var frame in stereoFrames)
+            {
+                if (stereoSequences.GetValueOrDefault(frame.Key) == frame.Sequence) continue;
+                await Send("audio-stereo", frame);
+                stereoSequences[frame.Key] = frame.Sequence;
+            }
+            foreach (var key in stereoSequences.Keys.Where(k => !stereoFrames.Any(f => f.Key == k)).ToArray()) stereoSequences.Remove(key);
+            var waveFrames = audioSpectrum.WaveformFrames();
+            foreach (var frame in waveFrames)
+            {
+                if (waveSequences.GetValueOrDefault(frame.Key) == frame.Sequence) continue;
+                await Send("audio-waveform", frame);
+                waveSequences[frame.Key] = frame.Sequence;
+            }
+            foreach (var key in waveSequences.Keys.Where(k => !waveFrames.Any(f => f.Key == k)).ToArray()) waveSequences.Remove(key);
             if (specActive && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lastSpec >= 1000 / SpectrumAnalyzer.Fps - 3)
             {
                 lastSpec = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -696,6 +747,9 @@ app.MapGet("/api/stream", async (HttpContext ctx, PushStore push, SessionMonitor
             // a change that arrived within 100 ms of the last state waits out the rest of that gap
             if (Volatile.Read(ref poked) == 1) waitMs = Math.Min(waitMs, lastState + 100 - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
             if (specActive) waitMs = Math.Min(waitMs, lastSpec + 1000 / SpectrumAnalyzer.Fps - DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
+            // Each analyzer can be the only visible widget; none depends on an active FFT profile.
+            if (audioFrames.Length > 0 || waveFrames.Length > 0 || stereoFrames.Length > 0 || loudnessFrames.Length > 0)
+                waitMs = Math.Min(waitMs, 33);
             await wake.WaitAsync(TimeSpan.FromMilliseconds(Math.Max(5, waitMs)), ct);
         }
     }
@@ -741,6 +795,21 @@ app.MapGet("/api/spectrum", (SpectrumAnalyzer spectrum) =>
     var shown = spectrum.Want();
     return Results.Json(new { shown, active = spectrum.Active, fps = SpectrumAnalyzer.Fps, b = shown ? spectrum.Frame() : null });
 });
+
+// Read-only spectral measurements, gated by the named saved widget. Pairing/TLS rules also apply over Wi-Fi.
+app.MapGet("/api/audio-spectrum", (HttpRequest req, string? widget, AudioSpectrum audio) =>
+    Results.Json(audio.Request(req.Headers["X-PhoneBox-Device"].ToString(), widget)));
+
+app.MapGet("/api/audio-loudness", (HttpRequest req, string? widget, AudioSpectrum audio) =>
+    Results.Json(audio.RequestLoudness(req.Headers["X-PhoneBox-Device"].ToString(), widget)));
+app.MapPost("/api/audio-loudness/reset", (HttpRequest req, string? widget, AudioSpectrum audio) =>
+    Results.Json(audio.RequestLoudness(req.Headers["X-PhoneBox-Device"].ToString(), widget, reset: true)));
+
+app.MapGet("/api/audio-stereo", (HttpRequest req, string? widget, AudioSpectrum audio) =>
+    Results.Json(audio.RequestStereo(req.Headers["X-PhoneBox-Device"].ToString(), widget)));
+
+app.MapGet("/api/audio-waveform", (HttpRequest req, string? widget, int? interval, AudioSpectrum audio) =>
+    Results.Json(audio.RequestWaveform(req.Headers["X-PhoneBox-Device"].ToString(), widget, interval)));
 
 // Output of a command widget (the command itself stays here).
 app.MapGet("/api/widget/{page}/{widget}", (string page, string widget, bool? force, CommandRunner runner) =>

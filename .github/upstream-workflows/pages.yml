@@ -2,9 +2,6 @@ name: pages
 
 # Publishes the live web demo (the real panel and settings page with made-up data) to GitHub Pages.
 on:
-  push:
-    branches: [main]
-    paths: ['android/app/src/main/assets/www/**', 'agent/PhoneBox.Agent/settings.html', 'agent/PhoneBox.Agent/*.json', 'agent/PhoneBox.Agent/PhoneBox.Agent.csproj', 'tools/pages/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:

@@ -6,6 +6,17 @@ using Xunit;
 /// <summary>Config normalization: templates, the pre-0.6.2 page migration, grid limits, ids and what the phone sees.</summary>
 public class ConfigTests
 {
+    [Theory]
+    [InlineData("{}", "noman17rus/PhoneBoxAudioFork")]
+    [InlineData("{\"updates\":{\"repo\":\"ersinkoc/phonebox\"}}", "noman17rus/PhoneBoxAudioFork")]
+    [InlineData("{\"updates\":{\"repo\":\" ErsinKoc/PhoneBox/ \"}}", "noman17rus/PhoneBoxAudioFork")]
+    [InlineData("{\"updates\":{\"repo\":\"\"}}", "noman17rus/PhoneBoxAudioFork")]
+    [InlineData("{\"updates\":{\"repo\":\"someone/custom\"}}", "someone/custom")]
+    public void ForkUpdatesMigrateOnlyTheUpstreamAndEmptyRepository(string json, string expected)
+    {
+        Assert.Equal(expected, Load(json).Updates.Repo);
+    }
+
     private static AgentConfig Load(string json)
     {
         var path = Path.Combine(Path.GetTempPath(), $"phonebox-cfg-{Guid.NewGuid():N}.json");

@@ -50,3 +50,11 @@ tools/ui-tests/test-results/
 
 *.log
 *.txt
+# Downloaded EBU reference signals (not redistributed)
+.audio-reference/
+
+# Local release tooling and signing backups
+.release-private/
+*.pfx
+*.pem
+*.key

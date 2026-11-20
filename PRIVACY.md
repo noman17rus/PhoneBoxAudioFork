@@ -8,6 +8,11 @@ Last updated: 2026-11-15 (PhoneBox 0.9.6).
 
 ## What stays on your devices
 
+- **Audio analyzers (this fork, Windows)** captures the selected output only while a saved analyzer widget requests
+  it, stopping about five seconds after it is hidden. It processes PCM in memory and sends only derived frequency
+  levels, waveform envelopes, stereo-field points and loudness measurements to paired phones and the desktop preview. PCM is never recorded or transmitted. See
+  [Audio spectrum](docs/AUDIO-SPECTRUM.md) for measurement and transport details.
+
 - **Settings and layouts**: `config.json` in `%APPDATA%\PhoneBox` (Windows), `~/.config/PhoneBox` (Linux) or
   `~/Library/Application Support/PhoneBox` (macOS), plus `data.json` (pushed values and notifications) next to it.
   On macOS and Linux these files are readable only by your user (0600).
@@ -49,6 +54,13 @@ Last updated: 2026-11-15 (PhoneBox 0.9.6).
   the agent captures what the default output device plays, analyzes it in memory and sends only 48 loudness levels
   per frame to the phone. Audio is never stored or sent; capture stops a few seconds after the widget leaves the
   screen, and removing the widget or turning its page off turns it off.
+- **YouTube video widget** (optional Chrome extension): after you explicitly start a tab capture, the extension reads
+  that tab's player title, playback state and player rectangle. When you leave the tab and the widget is visible, it
+  sends cropped JPEG pictures over loopback to the agent, then over USB or paired TLS Wi-Fi to your phone. Only the
+  latest picture is retained in RAM; video is not recorded to disk and audio is not captured. Capture remains armed
+  until stopped or the tab closes, even when pictures are not being sent. The extension stores its own revocable key
+  locally; the agent stores only the key's hash and extension ID beside its configuration. No YouTube credentials or
+  cookies are read or transferred. See [YouTube setup](docs/YOUTUBE.md).
 - **Mouse control for the Trackpad widget**: touches and scroll gestures are sent directly from the phone to the agent
   on your computer (over USB or pinned-TLS Wi-Fi) to control the cursor and scroll. No mouse or gesture data is ever
   recorded, stored or sent outside your local connection. It is active only while an enabled page contains the Trackpad

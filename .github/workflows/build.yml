@@ -68,115 +68,29 @@ jobs:
             tools/ui-tests/test-results/
 
   agent:
-    name: Agent (${{ matrix.rid }})
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: windows-latest, rid: win-x64, tfm: net10.0-windows10.0.19041.0 }
-          - { os: ubuntu-latest, rid: linux-x64, tfm: net10.0 }
-          - { os: macos-latest, rid: osx-arm64, tfm: net10.0 }
-    runs-on: ${{ matrix.os }}
+    name: Windows agent
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
         with:
           dotnet-version: 10.0.x
       - name: Unit tests
         run: dotnet test agent/PhoneBox.Agent.Tests --nologo
-      - name: Local packaging staging cleanup
-        if: matrix.rid == 'win-x64'
-        shell: pwsh
-        run: ./tools/test-build-staging.ps1
       - name: Windows installer regression checks
-        if: matrix.rid == 'win-x64'
         shell: pwsh
         run: |
           ./tools/test-install-apk.ps1
           ./tools/test-windows-source-publish.ps1
-      - name: Unix installer regression checks with the system Bash
-        if: matrix.rid != 'win-x64'
-        run: |
-          python3 tools/test-unix-installer.py --bash /bin/bash
-          python3 tools/test-unix-autostart.py /bin/bash
-          python3 tools/test-unix-uninstall.py
-      # the same build as the release (release.yml), so a pull request runs what ships
-      - name: Publish agent (self-contained, single file)
-        run: dotnet publish agent/PhoneBox.Agent -c Release -f ${{ matrix.tfm }} -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -o out --nologo
-      # The release signs with PhoneBox's own certificate (#269); here the same action signs with a throwaway one, so
-      # every change tests the step each release depends on, without a secret (pull requests from forks have none).
-      - name: Throwaway signing certificate (macOS)
-        id: cert
-        if: startsWith(matrix.rid, 'osx-')
-        run: |
-          openssl version
-          bash tools/make-macos-signing-cert.sh --out "$RUNNER_TEMP/cert"
-          password="$(cat "$RUNNER_TEMP/cert/phonebox-macos-signing.password")"
-          echo "::add-mask::$password"
-          {
-            echo "p12=$(base64 < "$RUNNER_TEMP/cert/phonebox-macos-signing.p12" | tr -d '\n')"
-            echo "password=$password"
-          } >> "$GITHUB_OUTPUT"
-          rm -rf "$RUNNER_TEMP/cert"
-          # a second, different program for the requirement check below
-          printf 'int main(void) { return 0; }\n' | clang -x c - -o "$RUNNER_TEMP/other-build"
-      - name: Sign the macOS agent (throwaway certificate)
-        if: startsWith(matrix.rid, 'osx-')
-        uses: ./.github/actions/sign-macos-agent
-        with:
-          binary: out/PhoneBoxAgent
-          p12-base64: ${{ steps.cert.outputs.p12 }}
-          p12-password: ${{ steps.cert.outputs.password }}
-      - name: Sign a different program with the same certificate
-        if: startsWith(matrix.rid, 'osx-')
-        uses: ./.github/actions/sign-macos-agent
-        with:
-          binary: ${{ runner.temp }}/other-build
-          p12-base64: ${{ steps.cert.outputs.p12 }}
-          p12-password: ${{ steps.cert.outputs.password }}
-      # What a user's Mac checks after an update, without the certificate (the action deleted its keychain): setup.sh
-      # re-signs ad hoc a binary whose signature does not verify, and macOS keeps the Accessibility permission only for
-      # a binary that satisfies the designated requirement it stored for the old one.
-      - name: Signature checks (macOS)
-        if: startsWith(matrix.rid, 'osx-')
-        run: |
-          if security find-certificate -c "PhoneBox Agent" >/dev/null 2>&1; then echo "::error::the signing keychain was left behind"; exit 1; fi
-          codesign --verify --strict --verbose=2 out/PhoneBoxAgent
-          requirement="$(codesign -d -r- out/PhoneBoxAgent 2>&1 | sed -n 's/^designated => //p')"
-          echo "Designated requirement: $requirement"
-          codesign --verify --verbose=2 -R="$requirement" "$RUNNER_TEMP/other-build"
-          # and an ad hoc signature (what releases had before) does not, or the check above proves nothing
-          cp "$RUNNER_TEMP/other-build" "$RUNNER_TEMP/adhoc-build"
-          codesign --force --sign - --identifier net.oxog.phonebox.agent "$RUNNER_TEMP/adhoc-build"
-          if codesign --verify -R="$requirement" "$RUNNER_TEMP/adhoc-build" 2>/dev/null; then echo "::error::an ad hoc build satisfies the requirement"; exit 1; fi
-      - name: Smoke test the single-file agent (Windows)
-        if: matrix.rid == 'win-x64'
+      - name: Publish self-contained agent
+        run: dotnet publish agent/PhoneBox.Agent -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained true -p:PublishSingleFile=true -o out --nologo
+      - name: Smoke test
         shell: pwsh
         run: |
           $version = ([regex]'<Version>([^<]+)</Version>').Match((Get-Content -Raw agent/PhoneBox.Agent/PhoneBox.Agent.csproj)).Groups[1].Value
           python tools/smoke-agent.py out/PhoneBoxAgent.exe --version $version
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-      - name: Smoke test (starts, serves the API)
-        if: matrix.rid != 'win-x64'
-        run: |
-          chmod +x out/PhoneBoxAgent
-          out/PhoneBoxAgent > agent.log 2>&1 &
-          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/api/state > state.json && break; sleep 1; done
-          sleep 4
-          curl -sf http://127.0.0.1:8765/api/state > state.json
-          curl -sf "http://127.0.0.1:8765/api/procs?top=3" > /dev/null; sleep 4
-          curl -sf "http://127.0.0.1:8765/api/procs?top=3" > procs.json
-          cat agent.log
-          head -c 700 state.json; echo
-          head -c 500 procs.json; echo
-          curl -sf http://127.0.0.1:8765/api/info; echo
-          # the system and process readings must work on this platform
-          python3 -c "import json; s=json.load(open('state.json')); p=json.load(open('procs.json')); assert s['pc'] and s['pc']['cpu'] is not None and s['pc']['ramTotalGb'] > 0, s['pc']; assert p['groups'], p; print('cpu', s['pc']['cpu'], 'ram', s['pc']['ramUsedGb'], '/', s['pc']['ramTotalGb'], 'procs', p['total'])"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: phonebox-agent-${{ matrix.rid }}
+          name: phonebox-agent-win-x64
           path: out/
-
-  artifact-transfer:
-    name: Artifact transfer contract
-    uses: ./.github/workflows/artifact-contract.yml

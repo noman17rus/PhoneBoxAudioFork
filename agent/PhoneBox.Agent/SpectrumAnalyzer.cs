@@ -99,7 +99,7 @@ public sealed class SpectrumAnalyzer(ConfigStore config, ILogger<SpectrumAnalyze
     }
 
     /// <summary>In-place radix-2 FFT; the length must be a power of two.</summary>
-    private static void Fft(double[] re, double[] im)
+    internal static void Fft(double[] re, double[] im)
     {
         var n = re.Length;
         for (int i = 1, j = 0; i < n; i++)

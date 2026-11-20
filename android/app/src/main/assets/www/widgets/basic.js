@@ -1,4 +1,6 @@
-import { $, API, D, LEVEL_COLOR, LOCALE, mediaHtml, METRICS, PANEL_HEADERS, PREVIEW, Q_STYLE, S_ORDER, ago, api, averageColor, buildLayout, buzz, cfg, cfgVersion, chart, color, cssVar, currentProcessesSort, emit, fillIcon, fmtClock, fmtDur, fmtHM, fmtMem, fmtReset, fmtTime, fmtValue, gotoProcesses, gpuMem, gpusOf, h, en, haptic, hasProcessesPage, hist, hour12, icon, keyButton, labelled, levelOf, media, metricText, online, openSheet, paceInfo, pad, prRow, pushView, quotaProviders, r1, registerProcessesSorter, renderStatus, ringSvg, setArtColor, configMark, configReadSince, localWriteStored, setMediaState, setVolDragging, shortDur, shortGpu, store, t, tick, toast, volDragging, wxBlock, wxDeg, wxIcon, emo, rich } from '../main.js';
+import { syncMeters, progressFill, updateRing } from './helpers.js';
+import { createAnimation } from '../animation.js';
+import { pages, curPage, $, API, D, LEVEL_COLOR, LOCALE, mediaHtml, METRICS, PANEL_HEADERS, PREVIEW, Q_STYLE, S_ORDER, ago, api, averageColor, buildLayout, buzz, cfg, cfgVersion, chart, color, cssVar, currentProcessesSort, emit, fillIcon, fmtClock, fmtDur, fmtHM, fmtMem, fmtReset, fmtTime, fmtValue, gotoProcesses, gpuMem, gpusOf, h, en, haptic, hasProcessesPage, hist, hour12, icon, keyButton, labelled, levelOf, media, metricText, online, openSheet, paceInfo, pad, prRow, pushView, quotaProviders, r1, registerProcessesSorter, renderStatus, ringSvg, setArtColor, configMark, configReadSince, localWriteStored, setMediaState, setVolDragging, shortDur, shortGpu, store, t, tick, toast, volDragging, wxBlock, wxDeg, wxIcon, emo, rich } from '../main.js';
 import { W } from '../registry.js';
 import { invalidateDeckState } from './controls.js';
 
@@ -14,7 +16,7 @@ function bindProcessLink(box, sortTarget) {
 
 // ================================================================= widgets
 // Each widget: { needs: [data kinds], bare?: no card background, create(box, ctx) -> { update(kind) } }
-// Data kinds: tick (every second), fast (4×/s), state, weather, quotas, work, procs, push, notes.
+// Data kinds: tick (every second), state, weather, quotas, work, procs, push, notes.
 
 W.clock = {
   bare: true, needs: ['tick', 'state', 'weather', 'quotas', 'work'],
@@ -99,12 +101,31 @@ W.forecast = {
 };
 
 W.media = {
-  needs: ['state', 'fast'],
-  create(box) {
+  needs: ['state'],
+  create(box, ctx) {
     box.innerHTML = mediaHtml();
     const q = (s) => box.querySelector(s);
     const img = q('.art'), vol = q('.volr');
     const sourceIcon = q('.m-source-icon');
+    const fill = q('.fill'), playhead = q('.playhead'), position = q('.m-pos');
+    const text = (el, value) => { if (el.textContent !== value) el.textContent = value; };
+    const paintFill = fraction => {
+      fraction = Math.max(0, Math.min(1, fraction));
+      const scale = `scaleX(${fraction})`, offset = `translateX(${(fraction - 1) * 100}%)`;
+      if (fill.style.transform !== scale) fill.style.transform = scale;
+      if (playhead.style.transform !== offset) playhead.style.transform = offset;
+    };
+    const motion = createAnimation(() => {
+      paintProgress();
+      return !!(media?.playing && !scrub && (!(media.durMs > 0) || nowMs() < media.durMs));
+    }, () => box.isConnected && pages[curPage] === ctx.page && !box.closest('.stack-item:not(.active)'));
+    function paintProgress() {
+      if (!media || scrub || pages[curPage] !== ctx.page || box.closest('.stack-item:not(.active)')) return;
+      const pos = media.durMs > 0 ? nowMs() : Math.max(0, (media.posMs || 0) + (media.playing ? performance.now() - media.at : 0));
+      paintFill(media.durMs > 0 ? pos / media.durMs : media.playing ? 1 : 0);
+      text(position, fmtTime(pos));
+      if (media.durMs > 0 && Math.floor(pos / 1000) !== ariaSec) { ariaSec = Math.floor(pos / 1000); paintAria(pos); }
+    }
     const sourceIcons = {
       YouTube: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="5" fill="#ff0033"/><path d="m10 8 6 4-6 4z" fill="#fff"/></svg>',
       'YouTube Music': '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#ff0033"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#fff" stroke-width="1.4"/><path d="m10 8.5 5.5 3.5-5.5 3.5z" fill="#fff"/></svg>',
@@ -117,9 +138,11 @@ W.media = {
       haptic();
       const action = btn.dataset.media;
       if (action === 'playpause' && media) {
+        media.posMs = media.durMs > 0 ? nowMs() : Math.max(0, (media.posMs || 0) + (media.playing ? performance.now() - media.at : 0));
         media.playing = !media.playing; // optimistic update
         media.at = performance.now();
         box.classList.toggle('playing', media.playing);
+        paintProgress(); motion.request();
       }
       try {
         const res = await api('/media/' + action, 'POST');
@@ -129,8 +152,8 @@ W.media = {
       } catch (_) {}
     }));
     // The position bar is a slider. Holding it (touch, mouse) or moving it with the arrow keys shows a bubble with the time
-    // the song will continue from; it seeks on release, not while moving. Meanwhile the once-a-second state and the 250 ms
-    // refresh leave the bar alone (see update()).
+    // the song will continue from; it seeks on release, not while moving. State updates and animation
+    // leave the bar alone while it is held.
     const bar = q('.bar'), tip = q('.scrub-tip');
     let scrub = null, seekTimer = 0, ariaSec = -1; // scrub: { id, ms, key } while held
     const canScrub = () => !!(media && media.durMs > 0 && media.canSeek);
@@ -147,7 +170,7 @@ W.media = {
     };
     const paintScrub = (ms) => {
       const pct = (ms / media.durMs) * 100;
-      q('.fill').style.width = pct + '%';
+      paintFill(pct / 100);
       q('.m-pos').textContent = tip.textContent = fmtTime(ms);
       bar.style.setProperty('--tip', pct + '%');
       paintAria(ms);
@@ -158,10 +181,12 @@ W.media = {
       const { ms, key } = scrub;
       scrub = null;
       bar.classList.remove('scrubbing');
+      paintProgress(); motion.request();
       if (!commit || !canScrub() || key !== trackKey()) return; // checked again: the song may have changed since it was held
       haptic();
       // the bar stays where it was put until the agent has caught up: its next samples still hold the old position
       media.posMs = ms; media.at = performance.now(); media.hold = performance.now() + 2500;
+      paintProgress(); motion.request();
       api('/media/seek?ms=' + ms, 'POST').catch(() => {});
     };
     const startScrub = (id, ms) => { scrub = { id, ms, key: trackKey() }; bar.classList.add('scrubbing'); paintScrub(ms); };
@@ -215,20 +240,7 @@ W.media = {
     return {
       update(kind) {
         if (scrub && scrub.key !== trackKey()) endScrub(false); // the song changed under the finger
-        if (kind === 'fast') {
-          if (!media || scrub) return; // while the bar is held it shows the chosen time, not the song's
-          if (media.durMs > 0) {
-            const pos = Math.min(media.durMs, media.posMs + (media.playing ? performance.now() - media.at : 0));
-            q('.fill').style.width = (pos / media.durMs) * 100 + '%';
-            q('.m-pos').textContent = fmtTime(pos);
-            if (Math.floor(pos / 1000) !== ariaSec) { ariaSec = Math.floor(pos / 1000); paintAria(pos); } // once a second, not every 250 ms
-          } else if (media.app === 'Internet Radio') {
-            const pos = Math.max(0, (media.posMs || 0) + (media.playing ? performance.now() - media.at : 0));
-            q('.fill').style.width = media.playing ? '100%' : '0';
-            q('.m-pos').textContent = fmtTime(pos);
-          }
-          return;
-        }
+        paintProgress(); motion.request();
         const m = D.state?.media, a = D.state?.audio;
         vol.disabled = (!a || a.canControl === false);
         box.classList.toggle('volume-unavailable', (!a || a.canControl === false));
@@ -242,10 +254,10 @@ W.media = {
           endScrub(false);
           box.classList.remove('playing');
           q('.m-app-name').textContent = 'Media';
-          sourceIcon.replaceChildren();
+          sourceIcon.replaceChildren(); delete sourceIcon.dataset.app;
           q('.m-title').textContent = t('w.nothingPlaying');
           q('.m-artist').textContent = t('w.pressToResume');
-          q('.fill').style.width = '0';
+          paintFill(0);
           q('.m-pos').textContent = q('.m-dur').textContent = '0:00';
           ariaSec = -1; paintAria(0); bar.setAttribute('aria-disabled', 'true');
           if (artId !== 0) { artId = 0; img.classList.remove('on'); setArtColor(null); }
@@ -253,11 +265,11 @@ W.media = {
         }
         box.classList.toggle('playing', m.playing);
         q('.m-app-name').textContent = m.app || 'Media';
-        sourceIcon.innerHTML = sourceIcons[m.app] || '';
+        if (sourceIcon.dataset.app !== m.app) { sourceIcon.dataset.app = m.app; sourceIcon.innerHTML = sourceIcons[m.app] || ''; }
         q('.m-title').textContent = m.title || 'Unknown track';
         q('.m-artist').textContent = [m.artist, m.album].filter(Boolean).join(' · ') || '—';
         if (m.app === 'Internet Radio' && !(m.durMs > 0)) {
-          q('.fill').style.width = m.playing ? '100%' : '0';
+          paintFill(m.playing ? 1 : 0);
           q('.m-pos').textContent = fmtTime(m.posMs || 0);
           q('.m-dur').textContent = m.playing ? 'LIVE' : '0:00';
         } else {
@@ -280,7 +292,7 @@ W.media = {
           else { img.classList.remove('on'); setArtColor(null); }
         }
       },
-      destroy() { endScrub(false); cancelVolumeDrag(); },
+      destroy() { endScrub(false); motion.destroy(); cancelVolumeDrag(); },
     };
   },
 };
@@ -321,7 +333,6 @@ W.gauge = {
     box.append(dial, h('div', 'g-label', m.label), sub);
     dial.append(pct);
     if (o.metric === 'cpu' || o.metric === 'ram') bindProcessLink(box, o.metric === 'cpu' ? 'cpu' : 'mem');
-    let svg = null;
     return {
       update() {
         const s = D.state;
@@ -330,9 +341,7 @@ W.gauge = {
         const p = raw == null ? 0 : (raw / (m.pct ? 100 : m.max(s))) * 100;
         const warn = m.hot ? (raw > m.hot[1] ? '#ef4444' : raw > m.hot[0] ? '#f59e0b' : '') : (p >= 95 ? '#ef4444' : p >= 85 ? '#f59e0b' : '');
         dial.style.setProperty('--qc', warn || 'var(--q)');
-        if (svg) svg.remove();
-        dial.insertAdjacentHTML('afterbegin', ringSvg(p));
-        svg = dial.firstElementChild;
+        updateRing(dial, p);
         const [v, u] = metricText(m, s);
         pct.replaceChildren(v, h('small', null, u));
         sub.textContent = m.sub?.(s) || '';
@@ -388,12 +397,9 @@ W.meters = {
     const list = h('div', 'meters');
     box.append(h('div', 's-head', h('span', 's-label', t('w.memory')), up), list);
     bindProcessLink(box, 'mem');
-    const meter = (name, txt, pct, c) => {
-      const e = h('div', 'meter', h('div', 'm-row', h('span', null, name), h('span', null, txt)), h('div', 'track', h('i')));
-      e.querySelector('i').style.width = Math.min(100, pct) + '%';
-      if (c) e.style.setProperty('--c', c);
-      return e;
-    };
+    const disks = h('div', 'disks');
+    list.append(disks);
+    const meter = (name, txt, pct, c) => ({ name, txt, pct, c });
     return {
       update() {
         const pc = D.state?.pc;
@@ -408,8 +414,8 @@ W.meters = {
           if (m) rows.push(meter(gpus.length > 1 ? `${m.label === 'VRAM' ? 'VRAM' : 'GPU'} · ${shortGpu(g.name)}` : m.label === 'VRAM' ? 'VRAM' : 'GPU MEMORY',
             `${r1(m.used)} / ${Math.round(m.total)} GB`, (m.used / m.total) * 100, cssVar('--gpu')));
         }
-        const disks = h('div', 'disks', ...(pc.disks || []).map((dk) => meter(dk.name === '/' ? 'DISK' : dk.name, Math.round((dk.usedGb / dk.totalGb) * 100) + '%', (dk.usedGb / dk.totalGb) * 100, '#94a3b8')));
-        list.replaceChildren(...rows, disks);
+        syncMeters(list, rows);
+        syncMeters(disks, (pc.disks || []).map((dk) => meter(dk.name === '/' ? 'DISK' : dk.name, Math.round((dk.usedGb / dk.totalGb) * 100) + '%', (dk.usedGb / dk.totalGb) * 100, '#94a3b8')));
       },
     };
   },
@@ -866,10 +872,11 @@ W.processes = {
         e.querySelector('.p-t').textContent = g.title;
         e.querySelector('.p-count').textContent = g.count > 1 ? '×' + g.count : '';
         e.querySelector('.p-lock').replaceChildren(...(g.locked ? [emo('🔒')] : []));
-        e.querySelector('.p-bar i').style.width = ((sort === 'cpu' ? g.cpu : g.memMb) / max) * 100 + '%';
+        progressFill(e.querySelector('.p-bar i'), (sort === 'cpu' ? g.cpu : g.memMb) / max);
         e.querySelector('.p-nums b').textContent = sort === 'cpu' ? g.cpu.toFixed(1) + '%' : fmtMem(g.memMb);
         e.querySelector('.p-nums small').textContent = sort === 'cpu' ? fmtMem(g.memMb) : g.cpu.toFixed(1) + '%';
-        grid.appendChild(e); // keeps the order
+        const index = list.indexOf(g);
+        if (grid.children[index] !== e) grid.insertBefore(e, grid.children[index] || null);
       }
     };
     const setSort = (s) => {
@@ -1058,7 +1065,6 @@ W.pomodoro = {
     const play = labelled(h('button', 'pb main', icon('play')), t('w.a.start')), reset = labelled(h('button', 'pb', icon('rotate-ccw')), t('w.a.restart')), skip = labelled(h('button', 'pb', icon('skip-forward')), t('w.a.skip'));
     dial.append(time);
     box.append(dial, phase, count, h('div', 'pomo-btns', reset, play, skip));
-    let svg = null;
     const total = () => plan[st.step].ms;
     const remaining = () => (st.endsAt ? Math.max(0, st.endsAt - Date.now()) : st.left);
     /** Moves to the next step; returns true when the last round of the sequence is over (the timer then stops). */
@@ -1098,9 +1104,7 @@ W.pomodoro = {
       box.classList.toggle('brk', kind !== 'focus');
       box.classList.toggle('long', kind === 'long');
       box.classList.toggle('run', !!st.endsAt);
-      if (svg) svg.remove();
-      dial.insertAdjacentHTML('afterbegin', ringSvg(100 * (1 - left / total())));
-      svg = dial.firstElementChild;
+      updateRing(dial, 100 * (1 - left / total()));
       time.textContent = fmtTime(left + 999);
       phase.textContent = label();
       const tomatoes = st.count ? '🍅'.repeat(Math.min(st.count, 6)) + (st.count > 6 ? ` ×${st.count}` : '') : t('w.noSessionsToday');
@@ -1341,7 +1345,7 @@ W.push = {
           v.sub ? h('div', 'ps', String(v.sub)) : null,
           v.progress != null ? h('div', 'track', h('i')) : null);
         const bar = body.querySelector('.track i');
-        if (bar) bar.style.width = Math.max(0, Math.min(100, v.progress * 100)) + '%';
+        if (bar) progressFill(bar, v.progress);
       }
       box.className = box.className.replace(/\bps-\w+/g, '') + ' ps-' + style;
       box.replaceChildren(title, body);

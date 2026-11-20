@@ -2,6 +2,7 @@
 // they import what they need from here, so this module must not run code that needs them while it loads
 // (the start section at the end runs after every module has loaded).
 import { W } from './registry.js';
+import { createAnimation, refreshAnimations, pauseAnimations } from './animation.js';
 import './appearance.js';
 import { cached } from './widgets/helpers.js';
 import './widgets/basic.js';
@@ -15,7 +16,12 @@ import './widgets/controls.js';
 import './widgets/console.js';
 import './widgets/dictate.js';
 import './widgets/camera.js';
+import './widgets/youtube.js';
 import './widgets/spectrum.js';
+import './widgets/audio-spectrum.js';
+import './widgets/audio-waveform.js';
+import './widgets/audio-stereo.js';
+import './widgets/audio-loudness.js';
 
 // PhoneBox desk panel. Pages are 12 × 6 grids of widgets, designed in the agent's settings page.
 // The panel talks to the PhoneBox agent through "/agent/*", which the Android shell proxies over USB
@@ -794,7 +800,7 @@ export const mediaHtml = () => `
     <div class="art-wrap"><img class="art" alt=""><div class="art-ph">♪</div></div>
     <div class="m-text"><div class="m-app"><span class="m-source-icon" aria-hidden="true"></span><span class="m-app-name">Media</span></div><div class="m-title">${t('w.nothingPlaying')}</div><div class="m-artist">${t('w.startOnPc')}</div></div>
   </div>
-  <div class="m-progress"><div class="bar" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0"><div class="fill"></div><div class="scrub-tip" aria-hidden="true">0:00</div></div><div class="times"><span class="m-pos">0:00</span><span class="m-dur">0:00</span></div></div>
+  <div class="m-progress"><div class="bar" role="slider" tabindex="0" aria-label="Position" aria-valuemin="0"><div class="fill"></div><div class="playhead" aria-hidden="true"></div><div class="scrub-tip" aria-hidden="true">0:00</div></div><div class="times"><span class="m-pos">0:00</span><span class="m-dur">0:00</span></div></div>
   <div class="m-controls">
     <button class="ic" data-media="prev" aria-label="Previous"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9.5 12z"/></svg></button>
     <button class="ic play" data-media="playpause" aria-label="Play/Pause">
@@ -1199,7 +1205,7 @@ export function handleEvent(e) {
   else if (e.kind === 'reload') location.reload();
 }
 
-export const WIDGET_ICONS = { camera: '📹', dictate: '🎙️', spectrum: '📶', 'app-console': '🎛️',discord: '💬', rules: '⚡', chargecare: '🔋', nextup: '⏭️', moon: '🌙', wordclock: '🔤', clock: '🕒', weather: '⛅', forecast: '🌦️', media: '🎵', stat: '📈', gauge: '⏲️', chart: '📊', meters: '💾', gpu: '🎮', quotas: '✳️', sessions: '🤖',
+export const WIDGET_ICONS = { camera: '📹', dictate: '🎙️', spectrum: '📶', 'audio-spectrum': '📈', 'audio-waveform': '〰️', 'audio-stereo': '◈', 'audio-loudness': '🔊', 'app-console': '🎛️',discord: '💬', rules: '⚡', chargecare: '🔋', nextup: '⏭️', moon: '🌙', wordclock: '🔤', clock: '🕒', weather: '⛅', forecast: '🌦️', media: '🎵', stat: '📈', gauge: '⏲️', chart: '📊', meters: '💾', gpu: '🎮', quotas: '✳️', sessions: '🤖',
   github: '🐙', processes: '⚙️', shortcuts: '🎛️', button: '🔘', worldclock: '🌍', calendar: '📅', pomodoro: '🍅', countdown: '⏳', note: '📝', command: '💻',
   push: '📡', inbox: '📬', label: '🔤', analog: '🕰️', progress: '📆', stopwatch: '⏱️', timer: '⏲️', counter: '🔢', breathe: '🫁', quote: '💬',
   checklist: '✅', battery: '🔋', topprocs: '🔥', quotaring: '🎯', volume: '🔊', sun: '🌅', air: '🍃', hackernews: '📰', feeds: '🗞️', photos: '🖼️', exchange: '💱', crypto: '🪙', image: '🖼️', pcswitch: '🖥️' };
@@ -1287,12 +1293,22 @@ export function runUpdate(m, kind, background = false) {
 }
 
 /** Delivers fresh data to the widgets on the visible pages; the others catch up when they come into view. */
+const pendingPaint = new Set();
+const paintUpdates = createAnimation(() => {
+  const kinds = [...pendingPaint]; pendingPaint.clear();
+  for (const kind of kinds) deliverUpdate(kind);
+});
+
 export function emit(kind) {
-  const act = activeSet();
+  // Deadlines and alarms are synchronous. Telemetry paints at most once per display frame.
+  if (kind === 'tick' || idle()) deliverUpdate(kind);
+  else { pendingPaint.add(kind); paintUpdates.request(); }
+}
+
+function deliverUpdate(kind) {
   for (const m of mounted) {
     if (!m.def.needs.includes(kind)) continue;
-    // alarms (timer, pomodoro) must go off on whatever page is showing, so those widgets get every tick
-    if (act.has(m.pi)) runUpdate(m, kind);
+    if (m.pi === curPage) runUpdate(m, kind);
     else if (m.def.always && kind === 'tick') runUpdate(m, kind, true);
     else m.dirty = true;
   }
@@ -1685,6 +1701,8 @@ export function onScroll() {
   if (p === curPage) return;
   const prev = curPage;
   curPage = p;
+  for (const el of pager.children) el.classList.toggle('motion-active', el.dataset.id === pages[p]?.id);
+  refreshAnimations();
   if (prev >= 0 && pagePaused) setPagePaused(false, { feedback: false, resume: false });
   updateDots();
   flashTitle();
@@ -1884,6 +1902,7 @@ export function setNight(on) {
   if (on === nightOn) return;
   nightOn = on;
   document.body.classList.toggle('night', on);
+  pauseAnimations(on || idle());
   applyBrightness(true);
 }
 
@@ -2176,6 +2195,10 @@ window.onAgentStream = (event, data) => {
   try { d = JSON.parse(data); } catch (_) { return; }
   if (event === 'state') { applyState(d); for (const e of evPre || []) evOffer(e); evPre = null; }
   else if (event === 'work') applyWork(d);
+  else if (event === 'audio-loudness') window.dispatchEvent(new CustomEvent('phonebox-audio-loudness', { detail: d }));
+  else if (event === 'audio-stereo') window.dispatchEvent(new CustomEvent('phonebox-audio-stereo', { detail: d }));
+  else if (event === 'audio-waveform') window.dispatchEvent(new CustomEvent('phonebox-audio-waveform', { detail: d }));
+  else if (event === 'audio-spectrum') window.dispatchEvent(new CustomEvent('phonebox-audio-spectrum', { detail: d }));
   else if (event === 'spectrum') window.dispatchEvent(new CustomEvent('phonebox-spectrum', { detail: d }));
   else if (event === 'event') { if (evPre) { evPre.push(d); if (evPre.length > 100) evPre.shift(); } else evOffer(d); }
 };
@@ -2189,11 +2212,17 @@ export const idle = () => appPaused || document.hidden;
 window.onAppPause = (paused) => {
   const was = idle();
   appPaused = !!paused;
+  pauseAnimations(nightOn || idle());
   if (was && !idle()) wokeUp();
 };
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !appPaused) wokeUp(); });
+document.addEventListener('visibilitychange', () => {
+  pauseAnimations(nightOn || idle());
+  if (!document.hidden && !appPaused) wokeUp();
+});
 // what the paused panel skipped is fetched at once, not at the next interval
 function wokeUp() {
+  setActive(true);
+  refreshAnimations();
   if (!online) return;
   loadConfig(); loadPush(); loadApprovals();
   if (anyNeeds('quotas')) loadQuotas();
@@ -2224,7 +2253,6 @@ applyDisplay();
 tick();
 loadWeather();
 setInterval(loadWeather, 15 * 60_000);
-setInterval(() => { if (!nightOn && !idle()) emit('fast'); }, 250);
 setInterval(() => { if (online && !idle() && anyNeeds('quotas')) loadQuotas(); }, 30_000);
 setInterval(() => { if (online && !idle() && anyNeeds('calendar')) loadCalendar(); }, 120_000);
 setInterval(() => { if (online && !idle() && anyNeeds('work') && !streaming()) loadWork(); }, 3000);

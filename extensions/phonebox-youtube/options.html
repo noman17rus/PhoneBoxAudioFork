@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>PhoneBox YouTube</title>
+<style>body{font:16px system-ui;max-width:620px;margin:40px auto;padding:20px;color:#eee;background:#191c22}label{display:block;margin:20px 0}input,button{font:inherit;padding:10px;border-radius:8px}input{display:block;width:90%;margin-top:8px}button{cursor:pointer}#status{white-space:pre-line}</style></head>
+<body><h1>PhoneBox YouTube</h1>
+<p>В настройках агента PhoneBox откройте «Основные → YouTube», создайте код и введите его здесь.</p>
+<form id="pair"><label>Адрес агента<input id="agent" value="http://127.0.0.1:8765" required></label>
+<label>Одноразовый код<input id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" required></label>
+<button>Подключить</button> <button type="button" id="forget">Забыть подключение</button></form>
+<p id="status" role="status"></p>
+<p>Добавьте виджет YouTube на страницу PhoneBox и сохраните её. Откройте ролик на YouTube и нажмите значок расширения. Видео появится на телефоне, когда вы уйдёте с вкладки; звук останется на ПК. Повторное нажатие останавливает передачу.</p>
+<script src="options.js"></script></body></html>

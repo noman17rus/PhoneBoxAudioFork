@@ -1,3 +1,5 @@
+> **PhoneBoxAudioFork** — публичный форк [PhoneBox от Ersin KOÇ](https://github.com/ersinkoc/phonebox), лицензия MIT. В форке добавлены аудиоанализаторы Windows и YouTube. [Скачать Windows ZIP, APK и комплект YouTube](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest). Обновления форка выходят в этом репозитории. При переходе с APK с другой подписью нужна ручная переустановка; сначала сохраните настройки.
+
 <p align="center"><img src="../agent/PhoneBox.Agent/phonebox.ico" width="72" alt="Значок PhoneBox"></p>
 
 <h1 align="center">PhoneBox</h1>
@@ -24,13 +26,13 @@ Windows, Linux и macOS. Без root, без аккаунта PhoneBox и без
 
 <p align="center">
   <a href="https://ersinkoc.github.io/phonebox/"><b>Живое демо</b></a> ·
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><b>Скачать</b></a> ·
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><b>Скачать</b></a> ·
   <a href="#быстрый-старт"><b>Быстрый старт</b></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml"><img src="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml/badge.svg" alt="Статус сборки"></a>
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Последний релиз"></a>
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Последний релиз"></a>
   <img src="https://img.shields.io/badge/Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-.NET%2010-512bd4" alt="Windows, Linux, macOS; .NET 10">
   <img src="https://img.shields.io/badge/Android-5%2B-3ddc84" alt="Android 5+">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="Лицензия MIT"></a>
@@ -58,7 +60,7 @@ PhoneBox объединяет полноэкранное **Android-прилож�
 **Windows 10/11 x64** (PowerShell):
 
 ```powershell
-irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1 | iex
 ```
 
 **Linux или macOS**:
@@ -73,7 +75,7 @@ curl -fsSL https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.sh | b
 
 | USB | Только Wi-Fi |
 |---|---|
-| Включите **Для разработчиков → Отладка по USB** и подключите кабель. | Установите APK из [последнего релиза](https://github.com/ersinkoc/phonebox/releases/latest), включите **Wi-Fi & Tailscale** и отсканируйте QR-код. |
+| Включите **Для разработчиков → Отладка по USB** и подключите кабель. | Установите APK из [последнего релиза](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest), включите **Wi-Fi & Tailscale** и отсканируйте QR-код. |
 
 ### 3. Настройте под себя
 

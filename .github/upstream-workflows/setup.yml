@@ -3,13 +3,6 @@ name: setup
 # Runs the one-step installers (setup.ps1, setup.sh) for real against the published release:
 # download, checksum, dependencies, install, start, and a second run that updates a running agent.
 on:
-  pull_request:
-    paths: [setup.ps1, setup.sh, tools/test-unix-setup-phone.py, .github/workflows/setup.yml]
-  push:
-    branches: [main]
-    paths: [setup.ps1, setup.sh, tools/test-unix-setup-phone.py, .github/workflows/setup.yml]
-  schedule:
-    - cron: '17 6 * * 1'   # weekly: the latest release against current winget, Homebrew and distribution packages
   workflow_dispatch:
 
 permissions:

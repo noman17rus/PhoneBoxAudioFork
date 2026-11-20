@@ -1,12 +1,14 @@
-import { $, LOCALE, buzz, fmtTime, h, en, haptic, icon, labelled, pad, r1, rich, store, t, tick, toast } from '../main.js';
+import { createAnimation } from '../animation.js';
+import { pages, curPage, $, LOCALE, buzz, fmtTime, h, en, haptic, icon, labelled, pad, r1, rich, store, t, tick, toast } from '../main.js';
 import { W } from '../registry.js';
-import { dialEl, lines } from './helpers.js';
+import { dialEl, lines, progressFill } from './helpers.js';
 const tr = (...args) => t(...args); // some widgets below name a local `t` (a timer element), which hides the translator
 
 // ---------------------------------------------------------------- clocks & time
 W.analog = {
   bare: true, needs: ['tick'],
-  create(box, { o }) {
+  create(box, ctx) {
+    const { o } = ctx;
     const showSec = o.seconds !== false;
     let fmt = null;
     if (o.zone) { try { fmt = new Intl.DateTimeFormat('en-GB', { timeZone: o.zone, hour: 'numeric', minute: 'numeric', second: 'numeric', hourCycle: 'h23' }); } catch (_) {} }
@@ -20,16 +22,23 @@ W.analog = {
       (showSec ? '<line class="sh" x1="50" y1="60" x2="50" y2="8"/>' : '') + '<circle class="hub" cx="50" cy="50" r="2.4"/></svg>';
     if (o.label) box.append(h('div', 'an-l', o.label));
     const [hh, mh, sh] = ['.hh', '.mh', '.sh'].map((s) => box.querySelector(s));
-    return {
-      update() {
-        let H, M, S;
-        if (fmt) { const p = Object.fromEntries(fmt.formatToParts(new Date()).map((x) => [x.type, +x.value])); [H, M, S] = [p.hour, p.minute, p.second]; }
-        else { const d = new Date(); [H, M, S] = [d.getHours(), d.getMinutes(), d.getSeconds()]; }
-        hh.setAttribute('transform', `rotate(${(H % 12) * 30 + M * 0.5} 50 50)`);
-        mh.setAttribute('transform', `rotate(${M * 6 + S * 0.1} 50 50)`);
-        sh?.setAttribute('transform', `rotate(${S * 6} 50 50)`);
-      },
+    let zonedSecond = -1, parts = null;
+    const paint = () => {
+      const now = new Date();
+      let H, M, S;
+      if (fmt) {
+        const second = Math.floor(now.getTime() / 1000);
+        if (second !== zonedSecond) { zonedSecond = second; parts = Object.fromEntries(fmt.formatToParts(now).map(x => [x.type, +x.value])); }
+        [H, M, S] = [parts.hour, parts.minute, parts.second];
+      } else [H, M, S] = [now.getHours(), now.getMinutes(), now.getSeconds()];
+      S += now.getMilliseconds() / 1000;
+      hh.setAttribute('transform', `rotate(${(H % 12) * 30 + M * .5 + S / 120} 50 50)`);
+      mh.setAttribute('transform', `rotate(${M * 6 + S * .1} 50 50)`);
+      sh?.setAttribute('transform', `rotate(${S * 6} 50 50)`);
+      return showSec;
     };
+    const motion = createAnimation(paint, () => box.isConnected && pages[curPage] === ctx.page && !box.closest('.stack-item:not(.active)'));
+    return { update() { motion.request(); }, destroy() { motion.destroy(); } };
   },
 };
 
@@ -56,14 +65,14 @@ W.progress = {
         const m0 = new Date(now.getFullYear(), now.getMonth(), 1), m1 = new Date(now.getFullYear(), now.getMonth() + 1, 1);
         const y0 = new Date(now.getFullYear(), 0, 1), y1 = new Date(now.getFullYear() + 1, 0, 1);
         const vals = [(now - day0) / (day1 - day0), (now - wk0) / (wk1 - wk0), (now - m0) / (m1 - m0), (now - y0) / (y1 - y0)];
-        vals.forEach((v, i) => { rows[i].pct.textContent = (v * 100).toFixed(i === 3 ? 1 : 0) + '%'; rows[i].bar.style.width = v * 100 + '%'; });
+        vals.forEach((v, i) => { rows[i].pct.textContent = (v * 100).toFixed(i === 3 ? 1 : 0) + '%'; progressFill(rows[i].bar, v); });
       },
     };
   },
 };
 
 W.stopwatch = {
-  needs: ['fast'],
+  needs: [],
   create(box, { page, w }) {
     const key = `sw:${page.id}/${w.id}`;
     let st = store.get(key, null) || { start: null, acc: 0, laps: [] };
@@ -74,11 +83,16 @@ W.stopwatch = {
     const elapsed = () => st.acc + (st.start ? Date.now() - st.start : 0);
     const fmtSw = (ms) => { const s = Math.floor(ms / 1000); const hh = Math.floor(s / 3600); return (hh ? hh + ':' + pad(Math.floor((s % 3600) / 60)) : Math.floor(s / 60)) + ':' + pad(s % 60) + '.' + Math.floor((ms % 1000) / 100); };
     const renderLaps = () => laps.replaceChildren(...st.laps.slice(-6).reverse().map((l, i, arr) => h('div', 'sw-lap', h('span', null, '#' + (st.laps.length - i)), h('span', null, fmtSw(l)))));
-    const paint = () => { a.replaceChildren(icon(st.start ? 'pause' : 'play')); b.replaceChildren(icon(st.start ? 'flag' : 'rotate-ccw')); labelled(a, tr(st.start ? 'w.a.pause' : 'w.a.start')); labelled(b, tr(st.start ? 'w.a.lap' : 'w.a.restart')); box.classList.toggle('run', !!st.start); };
+    const motion = createAnimation(() => {
+      const value = fmtSw(elapsed());
+      if (t.textContent !== value) t.textContent = value;
+      return !!st.start;
+    }, () => box.isConnected && pages[curPage] === page && !box.closest('.stack-item:not(.active)'));
+    const paint = () => { t.textContent = fmtSw(elapsed()); motion.request(); a.replaceChildren(icon(st.start ? 'pause' : 'play')); b.replaceChildren(icon(st.start ? 'flag' : 'rotate-ccw')); labelled(a, tr(st.start ? 'w.a.pause' : 'w.a.start')); labelled(b, tr(st.start ? 'w.a.lap' : 'w.a.restart')); box.classList.toggle('run', !!st.start); };
     a.addEventListener('click', () => { haptic(); if (st.start) { st.acc = elapsed(); st.start = null; } else st.start = Date.now(); save(); paint(); });
     b.addEventListener('click', () => { haptic(); if (st.start) st.laps.push(elapsed()); else st = { start: null, acc: 0, laps: [] }; save(); paint(); renderLaps(); });
     paint(); renderLaps();
-    return { update() { t.textContent = fmtSw(elapsed()); } };
+    return { update() { motion.request(); }, destroy() { motion.destroy(); } };
   },
 };
 

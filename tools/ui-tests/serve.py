@@ -25,5 +25,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     }
 
 
+class Server(http.server.ThreadingHTTPServer):
+    # The module graph opens many connections at once. Windows can refuse imports when the
+    # default five-connection accept queue fills, especially with two browser workers.
+    request_queue_size = 128
+
+
 directory, port = sys.argv[1], int(sys.argv[2])
-http.server.test(HandlerClass=functools.partial(Handler, directory=directory), port=port, bind='127.0.0.1')
+http.server.test(HandlerClass=functools.partial(Handler, directory=directory), ServerClass=Server,
+                 port=port, bind='127.0.0.1')

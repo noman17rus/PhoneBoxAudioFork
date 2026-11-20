@@ -288,6 +288,7 @@ test('meeting-status renders live on-air state and out-of-order work/push polls 
     const origFetch = window.fetch;
 
     m.applyState({ ts: Date.now(), privacy: { mic: true, camera: false, micApps: ['Zoom'] }, audio: { volume: 30, muted: false, canControl: true } });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const meetingBg = getComputedStyle(document.querySelector('.w-meeting-status .oa-sign')).backgroundColor;
 
     // Gated out-of-order loadWork() vs SSE 'work'
@@ -332,6 +333,7 @@ test('meeting-status renders live on-air state and out-of-order work/push polls 
     bar.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1, bubbles: true }));
     m.applyState({ ts: Date.now() + 500, privacy: { mic: true, camera: false }, audio: { volume: 82, muted: false, canControl: true } });
 
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     return {
       meetingBg,
       workStatus: m.D.work.sessions[0].status,

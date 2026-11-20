@@ -1,8 +1,9 @@
+import { createAnimation } from '../animation.js';
 // Spectrum bars: a live spectrum analyzer of the sound the PC is playing (SpectrumAnalyzer.cs on the agent).
 // Frames arrive as "spectrum" stream events (~30 per second, 48 bands of 0–100); this widget merges them into its
 // own number of bars and animates the fall and the peak caps itself, so it stays smooth between frames.
 import { W } from '../registry.js';
-import { h, api, D, emit, streaming, t, pages, curPage } from '../main.js';
+import { h, api, D, emit, streaming, t, pages, curPage, idle } from '../main.js';
 
 const PALETTES = {
   classic: [[0, '#16a34a'], [0.55, '#84cc16'], [0.72, '#facc15'], [0.88, '#f97316'], [1, '#ef4444']],
@@ -26,7 +27,7 @@ window.addEventListener('phonebox-spectrum', (e) => frame(e.detail));
 // not under the night screen, on the current page, and not in a Smart Stack card that is not showing. Mounted is not
 // enough: neighbouring pages and hidden stack cards stay mounted, and asking for them would keep the agent capturing.
 const mountedBars = new Set();
-const shows = (m) => !document.body.classList.contains('night')
+const shows = (m) => !idle() && !document.body.classList.contains('night')
   && m.box.isConnected && pages[curPage] === m.page && !m.box.closest('.stack-item:not(.active)');
 const onScreen = () => [...mountedBars].some(shows);
 
@@ -86,7 +87,7 @@ W.spectrum = {
 
     const level = new Float32Array(bars), peak = new Float32Array(bars), peakAt = new Float64Array(bars), peakV = new Float32Array(bars);
     let target = new Float32Array(bars);
-    let W2 = 0, H2 = 0, dpr = 1, colors = [], raf = 0, last = 0;
+    let W2 = 0, H2 = 0, dpr = 1, colors = [];
 
     const resize = () => {
       if (!box.isConnected) return ro.disconnect();
@@ -95,7 +96,7 @@ W.spectrum = {
       H2 = Math.max(1, Math.round(wrap.clientHeight * dpr));
       canvas.width = W2; canvas.height = H2;
       colors = [];
-      draw();
+      kick();
     };
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
@@ -143,14 +144,8 @@ W.spectrum = {
       }
     };
 
-    const step = (t) => {
-      raf = 0;
-      if (!box.isConnected) return;
-      // neighbouring pages stay mounted and still get frames meant for the page on screen: an instance that is not
-      // showing stops its loop and starts flat when it shows again (the next frame's update() kicks it)
-      if (!shows(me)) { level.fill(0); peak.fill(0); target.fill(0); last = 0; draw(); return; }
-      const dt = last ? Math.min(0.1, (t - last) / 1000) : 0;
-      last = t;
+    const step = (t, dt) => {
+      if (!dt) { level.set(target); peak.set(target); peakAt.fill(t); peakV.fill(0); }
       let moving = false;
       for (let i = 0; i < bars; i++) {
         level[i] = target[i] >= level[i] ? target[i] : Math.max(target[i], level[i] - fall * dt);
@@ -161,10 +156,10 @@ W.spectrum = {
       // frames stopped (page left, agent gone): let everything fall, then idle without burning frames
       if (Date.now() - (D.spectrumAt || 0) > 600) target.fill(0);
       draw();
-      if (moving || Date.now() - (D.spectrumAt || 0) < 600) raf = requestAnimationFrame(step);
-      else last = 0;
+      return moving || Date.now() - (D.spectrumAt || 0) < 600;
     };
-    const kick = () => { if (!raf && shows(me)) raf = requestAnimationFrame(step); };
+    const motion = createAnimation(step, () => shows(me));
+    const kick = () => motion.request();
 
     // the hint only while nothing arrives; it also says when the agent cannot capture (not Windows) or refuses to
     // (live preview of a page that is not saved yet: capture only runs for a widget on an enabled, saved page)
@@ -191,6 +186,7 @@ W.spectrum = {
         msg.hidden = true;
         kick();
       },
+      destroy() { motion.destroy(); ro.disconnect(); clearInterval(hint); mountedBars.delete(me); },
     };
   },
 };

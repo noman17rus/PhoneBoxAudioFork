@@ -15,6 +15,25 @@ using Xunit;
 /// </summary>
 public class UpdateChecksumTests
 {
+    [Fact]
+    public void ForkReleaseSelectsTheUpdaterAssetsAlongsideTheYouTubeBundles()
+    {
+        using var doc = JsonDocument.Parse("""
+        {"tag_name":"v0.9.22","html_url":"https://github.com/noman17rus/PhoneBoxAudioFork/releases/tag/v0.9.22","assets":[
+          {"name":"PhoneBoxAgent-0.9.22-win-x64.zip","browser_download_url":"https://example.test/agent.zip"},
+          {"name":"PhoneBox-0.9.22.apk","browser_download_url":"https://example.test/app.apk"},
+          {"name":"PhoneBoxYouTube-0.9.22.zip","browser_download_url":"https://example.test/youtube.zip"},
+          {"name":"PhoneBoxYouTubeExtension-0.9.22.zip","browser_download_url":"https://example.test/extension.zip"},
+          {"name":"SHA256SUMS-0.9.22.txt","browser_download_url":"https://example.test/sums.txt"}
+        ]}
+        """);
+        var release = UpdateService.SelectAssets(doc.RootElement, "win-x64");
+        Assert.Equal("0.9.22", release.Version);
+        Assert.Equal("https://example.test/agent.zip", release.AgentZip);
+        Assert.Equal("https://example.test/app.apk", release.Apk);
+        Assert.Equal("https://example.test/sums.txt", release.Sums);
+    }
+
     private const string Release099 = """
 {
   "assets": [

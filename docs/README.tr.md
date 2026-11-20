@@ -24,13 +24,13 @@ Windows, Linux ve macOS. Root, PhoneBox hesabı veya bulut hizmeti gerekmez.</p>
 
 <p align="center">
   <a href="https://ersinkoc.github.io/phonebox/"><b>Canlı demoyu dene</b></a> ·
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><b>İndir</b></a> ·
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><b>İndir</b></a> ·
   <a href="#hızlı-başlangıç"><b>Hızlı başlangıç</b></a>
 </p>
 
 <p align="center">
   <a href="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml"><img src="https://github.com/ersinkoc/phonebox/actions/workflows/build.yml/badge.svg" alt="Derleme durumu"></a>
-  <a href="https://github.com/ersinkoc/phonebox/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Son sürüm"></a>
+  <a href="https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest"><img src="https://img.shields.io/github/v/release/ersinkoc/phonebox?label=release" alt="Son sürüm"></a>
   <img src="https://img.shields.io/badge/Windows%20%C2%B7%20Linux%20%C2%B7%20macOS-.NET%2010-512bd4" alt="Windows, Linux, macOS; .NET 10">
   <img src="https://img.shields.io/badge/Android-5%2B-3ddc84" alt="Android 5+">
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT lisansı"></a>
@@ -65,7 +65,7 @@ Model, zamanlama ve token ayrıntıları için bir yapay zekâ oturumuna dokunun
 **Windows 10/11 x64** — normal bir PowerShell penceresine yapıştırın:
 
 ```powershell
-irm https://raw.githubusercontent.com/ersinkoc/phonebox/main/setup.ps1 | iex
+irm https://raw.githubusercontent.com/noman17rus/PhoneBoxAudioFork/main/setup.ps1 | iex
 ```
 
 **Linux veya macOS** — kendi kullanıcınızla çalıştırın:
@@ -85,7 +85,7 @@ Kurulum en son sürümü indirir, SHA-256 sağlama toplamını doğrular, eksik 
 
 | USB | Yalnızca Wi-Fi |
 |---|---|
-| **Geliştirici seçenekleri → USB hata ayıklama**'yı açın, veri kablosunu bağlayın ve telefondaki yetkilendirme istemini onaylayın. Kurulumun uygulamayı yüklemesine izin verin veya **Ayarlar → Genel → Telefon uygulamasını yükle**'yi kullanın. | [Son sürümden](https://github.com/ersinkoc/phonebox/releases/latest) APK'yı yükleyin. **Ayarlar → Genel → Wi-Fi & Tailscale**'i etkinleştirin, istendiğinde ajanı yeniden başlatın ve **Telefonu Wi-Fi ile eşleştir**'i seçin. Eşleştirme QR kodunu tarayın ve doğrulama kodunu onaylayın. |
+| **Geliştirici seçenekleri → USB hata ayıklama**'yı açın, veri kablosunu bağlayın ve telefondaki yetkilendirme istemini onaylayın. Kurulumun uygulamayı yüklemesine izin verin veya **Ayarlar → Genel → Telefon uygulamasını yükle**'yi kullanın. | [Son sürümden](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest) APK'yı yükleyin. **Ayarlar → Genel → Wi-Fi & Tailscale**'i etkinleştirin, istendiğinde ajanı yeniden başlatın ve **Telefonu Wi-Fi ile eşleştir**'i seçin. Eşleştirme QR kodunu tarayın ve doğrulama kodunu onaylayın. |
 | Bağlandığında ekranı uyandırır ve paneli açar; adb üzerinden uygulama güncellemelerini destekler. | adb veya geliştirici seçenekleri gerekmez; daha sonra USB yapılandırmadıkça uygulama güncellemelerini elle yükleyin. |
 
 Otomatik USB/Wi-Fi geçişi için Wi-Fi'yi etkinleştirin ve telefonu bir kez USB üzerinden bağlayın.

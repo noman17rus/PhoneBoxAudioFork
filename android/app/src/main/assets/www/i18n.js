@@ -22,6 +22,22 @@
 
   const STRINGS = {
     en: {
+      'w.youtube.unpaired': 'Pair the Chrome extension in Settings › General › YouTube',
+      'w.youtube.disconnected': 'Open YouTube in Chrome and start PhoneBox capture',
+      'w.youtube.pc': 'YouTube is open on the PC · leave the tab to watch here',
+      'w.youtube.no-video': 'Keep the YouTube player fully visible in its tab',
+      'w.youtube.capture-error': 'Capture unavailable · restart capture in Chrome',
+      'w.youtube.waiting': 'Waiting for video…',
+      'w.youtube.previous': 'Previous video',
+      'w.youtube.next': 'Next video',
+      'w.youtube.play': 'Play YouTube',
+      'w.youtube.pause': 'Pause YouTube',
+      's.youtube.hint': 'Install the PhoneBox YouTube Chrome extension from extensions/phonebox-youtube using Load unpacked. Add and save a YouTube widget, create a code here, then enter it in the extension settings. Click the extension on a YouTube video once per capture session. Video appears on the phone when you leave the tab; sound stays on the PC.',
+      's.youtube.pair': 'Create pairing code',
+      's.youtube.revoke': 'Disconnect extension',
+      's.youtube.expires': 'valid for 2 minutes · enter in extension settings',
+      's.youtube.revoked': 'Extension disconnected',
+      's.youtube.failed': 'Could not contact the PhoneBox agent',
       // Language selector
       'lang.auto': 'Follow system',
       'lang.label': 'Language',
@@ -3897,6 +3913,22 @@
       's.console.hint': 'Клавиши и регулятор для виджета «Консоль приложений», для каждого приложения: виджет показывает клавиши приложения на переднем плане на этом компьютере и отправляет их только ему. Приложения — это имена процессов, как на вкладке «Подробности» диспетчера задач (photoshop, gimp-2.10). Одна клавиша в строке, сначала подпись, потом клавиши: Отменить = ctrl+z. Только Windows; клавиши остаются на этом компьютере.',
       's.console.add': '＋ Добавить приложение',
       'w.photos.setUp': 'Выберите папку с фото в Настройки › Общие',
+      'w.youtube.unpaired': 'Подключите расширение Chrome: Основные → YouTube в настройках агента',
+      'w.youtube.disconnected': 'Откройте YouTube в Chrome и включите передачу PhoneBox',
+      'w.youtube.pc': 'YouTube открыт на ПК · уйдите с вкладки, чтобы смотреть здесь',
+      'w.youtube.no-video': 'Видеоплеер YouTube должен целиком помещаться во вкладке',
+      'w.youtube.capture-error': 'Захват недоступен · перезапустите передачу в Chrome',
+      'w.youtube.waiting': 'Ожидание видео…',
+      'w.youtube.previous': 'Предыдущее видео',
+      'w.youtube.next': 'Следующее видео',
+      'w.youtube.play': 'Продолжить YouTube',
+      'w.youtube.pause': 'Приостановить YouTube',
+      's.youtube.hint': 'Установите расширение PhoneBox YouTube из папки extensions/phonebox-youtube через «Загрузить распакованное расширение» в Chrome. Добавьте и сохраните виджет YouTube. Создайте код здесь и введите его в настройках расширения. На вкладке YouTube один раз нажмите значок расширения. При уходе с вкладки видео появится на телефоне, звук останется на ПК.',
+      's.youtube.pair': 'Создать код подключения',
+      's.youtube.revoke': 'Отключить расширение',
+      's.youtube.expires': 'действует 2 минуты · введите в настройках расширения',
+      's.youtube.revoked': 'Расширение отключено',
+      's.youtube.failed': 'Нет связи с агентом PhoneBox',
       'w.camera.pick': 'Выберите камеру в настройках этого виджета',
       'w.camera.starting': 'Подключение к камере…',
       'w.camera.noFfmpeg': 'Установите ffmpeg на компьютер (или укажите путь в Настройки › Общие › Камеры) и перезапустите PhoneBox',
@@ -5034,6 +5066,22 @@
       's.console.hint': 'Các phím và một núm xoay cho widget Bảng điều khiển ứng dụng, theo từng ứng dụng: widget hiển thị các phím của ứng dụng ở phía trước trên máy tính này và chỉ gửi chúng tới ứng dụng đó. Ứng dụng được ghi bằng tên tiến trình, như trong tab Chi tiết của Task Manager (photoshop, gimp-2.10). Mỗi dòng một phím, gồm nhãn rồi đến phím: Hoàn tác = ctrl+z. Chỉ dành cho Windows; các phím luôn ở trên máy tính này.',
       's.console.add': '＋ Thêm ứng dụng',
       'w.photos.setUp': 'Chọn thư mục ảnh trong Cài đặt › Chung',
+      'w.youtube.unpaired': 'Ghép nối tiện ích Chrome trong Cài đặt › Chung › YouTube',
+      'w.youtube.disconnected': 'Mở YouTube trong Chrome và bắt đầu truyền bằng PhoneBox',
+      'w.youtube.pc': 'YouTube đang mở trên máy tính · rời thẻ để xem tại đây',
+      'w.youtube.no-video': 'Giữ toàn bộ trình phát YouTube trong vùng hiển thị của thẻ',
+      'w.youtube.capture-error': 'Không thể chụp video · bắt đầu lại trong Chrome',
+      'w.youtube.waiting': 'Đang chờ video…',
+      'w.youtube.previous': 'Video trước',
+      'w.youtube.next': 'Video tiếp theo',
+      'w.youtube.play': 'Phát YouTube',
+      'w.youtube.pause': 'Tạm dừng YouTube',
+      's.youtube.hint': 'Cài tiện ích Chrome PhoneBox YouTube từ thư mục extensions/phonebox-youtube bằng nút tải tiện ích đã giải nén. Thêm và lưu widget YouTube, tạo mã tại đây rồi nhập mã trong cài đặt tiện ích. Nhấn biểu tượng tiện ích một lần trên thẻ video YouTube. Khi bạn rời thẻ, video xuất hiện trên điện thoại và âm thanh vẫn phát trên máy tính.',
+      's.youtube.pair': 'Tạo mã ghép nối',
+      's.youtube.revoke': 'Ngắt kết nối tiện ích',
+      's.youtube.expires': 'có hiệu lực 2 phút · nhập trong cài đặt tiện ích',
+      's.youtube.revoked': 'Đã ngắt kết nối tiện ích',
+      's.youtube.failed': 'Không thể kết nối với ứng dụng PhoneBox trên máy tính',
       'w.camera.pick': 'Hãy chọn một camera trong cài đặt của widget này',
       'w.camera.starting': 'Đang kết nối với camera…',
       'w.camera.noFfmpeg': 'Hãy cài ffmpeg trên máy tính (hoặc nhập đường dẫn trong Cài đặt › Chung › Camera), rồi khởi động lại PhoneBox',
@@ -6457,11 +6505,42 @@
     if (STRINGS[lang]) Object.assign(STRINGS[lang], entries);
   }
 
+  const youtubeKeys = ['unpaired', 'disconnected', 'pc', 'no-video', 'capture-error', 'waiting', 'previous', 'next', 'play', 'pause'];
+  const youtubeMessages = {
+    tr: ['Chrome uzantısını Ayarlar › Genel › YouTube bölümünde eşleştirin', 'Chrome’da YouTube’u açıp PhoneBox aktarımını başlatın', 'YouTube bilgisayarda açık · burada izlemek için sekmeden ayrılın', 'YouTube oynatıcısı sekmede tamamen görünür olmalı', 'Görüntü alınamıyor · Chrome’da aktarımı yeniden başlatın', 'Video bekleniyor…', 'Önceki video', 'Sonraki video', 'YouTube’u oynat', 'YouTube’u duraklat'],
+    de: ['Chrome-Erweiterung unter Einstellungen › Allgemein › YouTube koppeln', 'YouTube in Chrome öffnen und PhoneBox-Übertragung starten', 'YouTube ist am PC geöffnet · zum Ansehen hier den Tab verlassen', 'Der YouTube-Player muss im Tab vollständig sichtbar sein', 'Aufnahme nicht verfügbar · Übertragung in Chrome neu starten', 'Warte auf Video…', 'Vorheriges Video', 'Nächstes Video', 'YouTube abspielen', 'YouTube pausieren'],
+    fr: ['Associez l’extension Chrome dans Paramètres › Général › YouTube', 'Ouvrez YouTube dans Chrome et lancez la diffusion PhoneBox', 'YouTube est ouvert sur le PC · quittez l’onglet pour regarder ici', 'Gardez le lecteur YouTube entièrement visible dans l’onglet', 'Capture indisponible · relancez la diffusion dans Chrome', 'En attente de la vidéo…', 'Vidéo précédente', 'Vidéo suivante', 'Lire YouTube', 'Mettre YouTube en pause'],
+    es: ['Vincula la extensión de Chrome en Ajustes › General › YouTube', 'Abre YouTube en Chrome e inicia la transmisión de PhoneBox', 'YouTube está abierto en el PC · sal de la pestaña para verlo aquí', 'Mantén el reproductor de YouTube completamente visible en la pestaña', 'Captura no disponible · reinicia la transmisión en Chrome', 'Esperando vídeo…', 'Vídeo anterior', 'Vídeo siguiente', 'Reproducir YouTube', 'Pausar YouTube'],
+    it: ['Associa l’estensione Chrome in Impostazioni › Generali › YouTube', 'Apri YouTube in Chrome e avvia la trasmissione PhoneBox', 'YouTube è aperto sul PC · lascia la scheda per guardare qui', 'Mantieni il lettore YouTube interamente visibile nella scheda', 'Acquisizione non disponibile · riavvia la trasmissione in Chrome', 'In attesa del video…', 'Video precedente', 'Video successivo', 'Riproduci YouTube', 'Metti YouTube in pausa'],
+    pt: ['Associe a extensão do Chrome em Definições › Geral › YouTube', 'Abra o YouTube no Chrome e inicie a transmissão PhoneBox', 'O YouTube está aberto no PC · saia do separador para ver aqui', 'Mantenha o leitor do YouTube totalmente visível no separador', 'Captura indisponível · reinicie a transmissão no Chrome', 'À espera do vídeo…', 'Vídeo anterior', 'Vídeo seguinte', 'Reproduzir YouTube', 'Pausar YouTube'],
+    nl: ['Koppel de Chrome-extensie via Instellingen › Algemeen › YouTube', 'Open YouTube in Chrome en start de PhoneBox-overdracht', 'YouTube is geopend op de pc · verlaat het tabblad om hier te kijken', 'Houd de YouTube-speler volledig zichtbaar in het tabblad', 'Opname niet beschikbaar · herstart de overdracht in Chrome', 'Wachten op video…', 'Vorige video', 'Volgende video', 'YouTube afspelen', 'YouTube pauzeren'],
+    pl: ['Sparuj rozszerzenie Chrome w Ustawienia › Ogólne › YouTube', 'Otwórz YouTube w Chrome i rozpocznij przesyłanie PhoneBox', 'YouTube jest otwarty na komputerze · opuść kartę, aby oglądać tutaj', 'Odtwarzacz YouTube musi być w całości widoczny na karcie', 'Przechwytywanie niedostępne · uruchom ponownie przesyłanie w Chrome', 'Oczekiwanie na wideo…', 'Poprzedni film', 'Następny film', 'Odtwórz YouTube', 'Wstrzymaj YouTube'],
+    el: ['Σύζευξη της επέκτασης Chrome στις Ρυθμίσεις › Γενικά › YouTube', 'Άνοιξε το YouTube στο Chrome και ξεκίνησε τη μετάδοση PhoneBox', 'Το YouTube είναι ανοιχτό στον υπολογιστή · άφησε την καρτέλα για προβολή εδώ', 'Κράτησε ολόκληρο το πρόγραμμα αναπαραγωγής ορατό στην καρτέλα', 'Η λήψη δεν είναι διαθέσιμη · ξεκίνησε ξανά τη μετάδοση στο Chrome', 'Αναμονή για βίντεο…', 'Προηγούμενο βίντεο', 'Επόμενο βίντεο', 'Αναπαραγωγή YouTube', 'Παύση YouTube'],
+    zh: ['请在设置 › 常规 › YouTube 中配对 Chrome 扩展程序', '在 Chrome 中打开 YouTube 并启动 PhoneBox 传输', '电脑正在显示 YouTube · 离开该标签页即可在此观看', '请确保标签页中的 YouTube 播放器完整可见', '无法捕获画面 · 请在 Chrome 中重新启动传输', '正在等待视频…', '上一个视频', '下一个视频', '播放 YouTube', '暂停 YouTube'],
+  };
+  for (const [lang, messages] of Object.entries(youtubeMessages)) {
+    youtubeKeys.forEach((key, index) => { STRINGS[lang]['w.youtube.' + key] = messages[index]; });
+  }
+  Object.assign(STRINGS.el, {
+    's.youtube.hint': 'Εγκατάστησε την επέκταση Chrome PhoneBox YouTube από τον φάκελο extensions/phonebox-youtube με τη φόρτωση μη συμπιεσμένης επέκτασης. Πρόσθεσε και αποθήκευσε ένα widget YouTube, δημιούργησε εδώ έναν κωδικό και καταχώρισέ τον στις ρυθμίσεις της επέκτασης. Πάτησε μία φορά το εικονίδιο της επέκτασης σε ένα βίντεο YouTube. Όταν αφήσεις την καρτέλα, το βίντεο εμφανίζεται στο τηλέφωνο και ο ήχος παραμένει στον υπολογιστή.',
+    's.youtube.pair': 'Δημιουργία κωδικού σύζευξης',
+    's.youtube.revoke': 'Αποσύνδεση επέκτασης',
+    's.youtube.expires': 'ισχύει για 2 λεπτά · καταχώρισέ τον στις ρυθμίσεις της επέκτασης',
+    's.youtube.revoked': 'Η επέκταση αποσυνδέθηκε',
+    's.youtube.failed': 'Δεν ήταν δυνατή η σύνδεση με το PhoneBox στον υπολογιστή',
+  });
+
   // The widget and template catalog (widgets.json, templates.json) has no keys of its own: entries are translated by
   // their English text, and anything missing simply stays English. `tc()` is the lookup the settings editor uses.
   const CATALOG = {
+    ru: {
+      'YouTube': 'YouTube',
+      'Video from a selected Chrome YouTube tab when you leave it; sound stays on the PC. Requires the PhoneBox YouTube extension (Settings › General › YouTube).': 'Видео из выбранной вкладки YouTube в Chrome при уходе с неё; звук остаётся на ПК. Требуется расширение PhoneBox YouTube (Основные → YouTube в настройках агента).',
+    },
     el: {
       'Time': 'Ώρα',
+      'YouTube': 'YouTube',
+      'Video from a selected Chrome YouTube tab when you leave it; sound stays on the PC. Requires the PhoneBox YouTube extension (Settings › General › YouTube).': 'Βίντεο από την επιλεγμένη καρτέλα YouTube στο Chrome όταν την αφήνεις· ο ήχος παραμένει στον υπολογιστή. Απαιτείται η επέκταση PhoneBox YouTube (Ρυθμίσεις › Γενικά › YouTube).',
       'Personal': 'Προσωπικά',
       'Weather & sky': 'Καιρός & ουρανός',
       'Computer': 'Υπολογιστής',
@@ -7129,6 +7208,8 @@
     },
     vi: {
       // Categories
+      'YouTube': 'YouTube',
+      'Video from a selected Chrome YouTube tab when you leave it; sound stays on the PC. Requires the PhoneBox YouTube extension (Settings › General › YouTube).': 'Video từ thẻ YouTube đã chọn trong Chrome khi bạn rời thẻ; âm thanh vẫn phát trên máy tính. Cần tiện ích PhoneBox YouTube (Cài đặt › Chung › YouTube).',
       'Time': 'Thời gian',
       'Personal': 'Cá nhân',
       'Weather & sky': 'Thời tiết & bầu trời',
