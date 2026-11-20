@@ -12,7 +12,7 @@ async function progressAt(page, instant) {
       return [...box.querySelectorAll('.pr-row')].map(row => ({
         label: row.querySelector('.m-row span').textContent,
         text: row.querySelector('.m-row').lastElementChild.textContent,
-        width: Number.parseFloat(row.querySelector('.track i').style.width),
+        width: row.querySelector('.track i').getBoundingClientRect().width / row.querySelector('.track').getBoundingClientRect().width * 100,
       }));
     } finally { box.remove(); }
   });

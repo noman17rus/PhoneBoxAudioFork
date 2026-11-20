@@ -7882,6 +7882,72 @@
     },
   };
 
+  // Audio analyzer catalog added by the fork.
+  Object.assign(CATALOG.vi, {
+    "Audio spectrum": "Phổ âm thanh",
+    "Audio waveform": "Dạng sóng âm thanh",
+    "Stereo field": "Trường âm thanh nổi",
+    "Audio spectrum analysis": "Phân tích phổ âm thanh",
+    "Audio Analysis": "Phân tích âm thanh",
+    "Audio Waveform": "Dạng sóng âm thanh",
+    "Stereo Field": "Trường âm thanh nổi",
+    "Loudness": "Độ lớn âm thanh",
+    "Calibrated stereo FFT of a Windows output, adjustable tilt, averaging and peak hold.": "FFT âm thanh nổi được hiệu chuẩn của đầu ra Windows, có chỉnh độ nghiêng, lấy trung bình và giữ đỉnh.",
+    "Separate L/R or Mid/Side waveforms with time scale, freeze and 0 dBFS markers. Min/max envelopes preserve brief peaks.": "Dạng sóng trái/phải hoặc giữa/bên riêng biệt, có thang thời gian, đóng băng và vạch 0 dBFS. Đường bao nhỏ nhất/lớn nhất giữ lại các đỉnh ngắn.",
+    "Vectorscope with afterglow, correlation, L/R levels and Mid/Side energy. Mono vertical, antiphase horizontal.": "Đồ thị véc-tơ có dư ảnh, tương quan, mức trái/phải và năng lượng giữa/bên. Đơn âm theo chiều dọc, ngược pha theo chiều ngang.",
+    "Sample Peak, 400 ms RMS and True Peak per L/R; LUFS Momentary, Short-term and gated Integrated. Session maxima and reset.": "Đỉnh mẫu, RMS 400 ms và đỉnh thực cho từng kênh trái/phải; LUFS tức thời, ngắn hạn và tích hợp có ngưỡng. Giá trị tối đa của phiên và đặt lại.",
+    "Full-screen Windows output spectrum with adjustable tilt.": "Phổ đầu ra Windows toàn màn hình với độ nghiêng tùy chỉnh.",
+    "Stereo waveform with preserved peaks and selectable time window.": "Dạng sóng âm thanh nổi giữ nguyên đỉnh và có cửa sổ thời gian tùy chọn.",
+    "Stereo imaging, phase and channel energy.": "Hình ảnh âm thanh nổi, pha và năng lượng kênh.",
+    "Peak, RMS, True Peak and LUFS with session maxima.": "Đỉnh, RMS, đỉnh thực và LUFS cùng giá trị tối đa của phiên.",
+    "Output": "Đầu ra",
+    "FFT size": "Kích thước FFT",
+    "Window": "Cửa sổ",
+    "Tilt (dB/octave)": "Độ nghiêng (dB/quãng tám)",
+    "Averaging (ms)": "Lấy trung bình (ms)",
+    "Peak hold": "Giữ đỉnh",
+    "Frequency scale": "Thang tần số",
+    "Level range": "Dải mức",
+    "Channels": "Các kênh",
+    "Time window": "Cửa sổ thời gian",
+    "Freeze": "Đóng băng",
+    "Afterglow": "Dư ảnh",
+    "Mode": "Chế độ",
+    "Left / Right": "Trái / Phải",
+    "Mid / Side": "Giữa / Bên",
+    "Logarithmic": "Lôgarit",
+    "Linear": "Tuyến tính",
+    "Hann": "Hann",
+    "Blackman-Harris": "Blackman-Harris",
+    "Off": "Tắt",
+    "On": "Bật",
+    "〰️ Audio Waveform": "〰️ Dạng sóng âm thanh",
+    "◈ Stereo Field": "◈ Trường âm thanh nổi",
+    "📈 Audio Analysis": "📈 Phân tích âm thanh",
+    "🔊 Loudness": "🔊 Độ lớn âm thanh"
+});
+
+  Object.assign(CATALOG.vi, {
+    "Output (automatic = default output)": "Đầu ra (tự động = đầu ra mặc định)",
+    "Power averaging": "Lấy trung bình công suất",
+    "100 ms": "100 ms",
+    "300 ms": "300 ms",
+    "1 second": "1 giây",
+    "Average channel power": "Công suất kênh trung bình",
+    "Display tilt (dB/octave, pivot 1 kHz)": "Độ nghiêng hiển thị (dB/quãng tám, tâm 1 kHz)",
+    "Display floor (dB)": "Mức sàn hiển thị (dB)",
+    "Visible interval": "Khoảng thời gian hiển thị",
+    "10 ms": "10 ms",
+    "50 ms": "50 ms",
+    "500 ms": "500 ms",
+    "1 s": "1 giây",
+    "5 s": "5 giây",
+    "10 s": "10 giây",
+    "250 ms": "250 ms",
+    "800 ms": "800 ms",
+    "1.5 s": "1,5 giây"
+});
+
   let pref = 'auto';
   let active = 'en';
 

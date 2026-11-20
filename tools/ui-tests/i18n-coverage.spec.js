@@ -8,6 +8,9 @@ const path = require('path');
 // Names the demo config carries, so they are data rather than interface text. Read from the demo server so the list
 // stays right when the sample config changes.
 const DEMO_NAMES = [
+  // Audio page titles stored in the demo configuration are user data.
+  'Audio Analysis', 'Audio Waveform', 'Stereo Field', 'Loudness',
+  '📈 Audio Analysis', '〰️ Audio Waveform', '◈ Stereo Field', '🔊 Loudness',
   '🏠 Home', '🧭 Dashboard', '✳️ AI quotas', '🤖 Sessions', '📊 System', '⚙️ Processes', '🎛️ Shortcuts',
   '🎵 Music', '🎯 Status', '🌅 Ambient', '🌍 World', '✅ Daily', '💱 Markets', '📡 Feeds', '🍅 Focus',
   '🫁 Calm', '🕰️ Clock', '⚡ Automation', '🗓️ Planner', '🛏️ Nightstand', '🏖️ Weekend', '🎧 Deep work',

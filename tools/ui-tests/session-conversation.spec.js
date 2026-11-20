@@ -20,10 +20,15 @@ const session = (over = {}) => ({ id: 'claude:t1', tool: 'claude', name: 'develo
 async function open(page, sessions) {
   await layout(page, [widget('sessions')]);
   await page.evaluate(async (sessions) => {
-    const { D, emit } = await import('/panel/main.js');
-    D.work = { sessions, github: { user: null, notifications: 0, reviewRequests: [], myPrs: [], error: null } };
-    emit('work');
+    const { applyWork } = await import('/panel/main.js');
+    const work = { sessions, github: { user: null, notifications: 0, reviewRequests: [], myPrs: [], error: null } };
+    const real = window.fetch;
+    window.fetch = async (...args) => new URL(String(args[0]), location.href).pathname === '/api/work'
+      ? new Response(JSON.stringify(work), { headers: { 'Content-Type': 'application/json' } }) : real(...args);
+    applyWork(work);
   }, sessions);
+  // Work rendering is batched into the next animation frame.
+  await expect(page.locator('button.sess')).toHaveCount(sessions.length);
 }
 
 test('a Claude Code session shows its recent steps, the last exchange and the whole conversation', async ({ page }) => {
