@@ -240,6 +240,10 @@ test('a webhook switches pages after a countdown', async ({ page }) => {
 test('Stay cancels a rule page switch', async ({ page }) => {
   await page.goto('/panel/');
   await expect(page.locator('.w').first()).toBeVisible();
+  // Wait for the full demo layout: audio pages precede Home in this fork.
+  await expect.poll(() => page.locator('#dots i').count()).toBeGreaterThan(10);
+  await page.evaluate(async () => (await import('/panel/main.js')).goPage(0, true));
+  expect(await activeDot(page)).toBe(0);
   await page.evaluate(() => window.PhoneBoxDemo.emit('goto', { page: 2, rule: 'music', name: 'Music', hold: true, countdown: 5 }));
   await expect(page.locator('#nvName')).toHaveText('Music');
   await page.locator('#nvStay').click();
