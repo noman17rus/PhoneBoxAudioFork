@@ -58,3 +58,5 @@ tools/ui-tests/test-results/
 *.pfx
 *.pem
 *.key
+__pycache__/
+*.py[cod]

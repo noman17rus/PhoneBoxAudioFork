@@ -71,6 +71,8 @@ def main():
     agent = {n: data for n, data in tree(args.agent).items() if not n.endswith('.pdb')}
     assert 'PhoneBoxAgent.exe' in agent
     extension = tree(ROOT / 'extensions/phonebox-youtube')
+    agent['LICENSE'] = (ROOT / 'LICENSE').read_bytes()
+    extension['LICENSE'] = (ROOT / 'LICENSE').read_bytes()
     asset = names(version)
     write_zip(args.out / asset[0], agent)
     (args.out / asset[1]).write_bytes(args.apk.read_bytes())

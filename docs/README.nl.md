@@ -1,3 +1,5 @@
+> **PhoneBoxAudioFork** is a public MIT fork of [PhoneBox by Ersin KOÇ](https://github.com/ersinkoc/phonebox). Fork downloads and updates: [Windows x64 + Android releases](https://github.com/noman17rus/PhoneBoxAudioFork/releases/latest). Windows fork binaries are unsigned; upstream signing and package-manager instructions below apply to the original project. Android uses its own permanent fork key; switching from another signature requires a manual reinstall after backing up settings.
+
 <p align="center"><img src="../agent/PhoneBox.Agent/phonebox.ico" width="72" alt="PhoneBox-pictogram"></p>
 
 <h1 align="center">PhoneBox</h1>
